@@ -2,6 +2,7 @@ import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { OBJECT_ID_RE, type GitBaseline } from './git.js';
+import { automaticServerIdentity } from './server-discovery.js';
 
 export interface BaselineStore {
   save(sessionId: string, baseline: GitBaseline): Promise<void>;
@@ -132,6 +133,6 @@ export class InMemoryBaselineStore implements BaselineStore {
   }
 }
 
-export function createDefaultBaselineStore(config: { stateDir: string; serverUrl: string }): BaselineStore {
-  return new FileBaselineStore({ stateDir: config.stateDir, serverUrl: config.serverUrl });
+export function createDefaultBaselineStore(config: { stateDir: string; serverUrl: string; autoServer?: boolean; kimiCodeHome?: string }): BaselineStore {
+  return new FileBaselineStore({ stateDir: config.stateDir, serverUrl: config.autoServer ? automaticServerIdentity(config) : config.serverUrl });
 }

@@ -30,6 +30,13 @@ Use this skill when the user wants Codex to act as planner, reviewer, and coordi
 - Older servers without the prompt queue API return `queueEvidence: unavailable`. Abort-and-wait cannot confirm complete termination in this fallback. A supplied prompt ID is never replaced by an unverified session-wide abort.
 - Pre-submit checks are not an atomic lock against other Kimi clients. Keep one orchestrator per session and follow the consuming project's delegation rules.
 
+## Startup and discovery
+
+- The plugin defaults to `KIMI_SERVER_URL=auto`: modern Kimi binds an OS-assigned loopback port. Use returned `serverUrl`, `webBaseUrl`, and `webUrl`; do not assume port 58627.
+- `kimi_bridge_status` is read-only. On first use, call `kimi_recent_sessions` to trigger preflight/startup before delegating implementation.
+- A structured preflight failure with `submissionState: not_submitted` means this call submitted no session/prompt. If `startupMayStillBeRunning` is true, resolve that startup state before retrying. Distinguish startup timeout from a task-wait timeout, which leaves the original task running.
+- Startup diagnostics expose safe codes only. Never request, copy, or publish raw startup output: it may contain bearer tokens or authenticated URLs.
+
 ## Delegation Prompt
 
 Every task sent to Kimi must include:

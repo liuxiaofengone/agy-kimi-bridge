@@ -1,6 +1,6 @@
 {
   "name": "kimi-delegate",
-  "version": "0.3.0+codex.20261105155700",
+  "version": "0.3.0+codex.20261105215100",
   "description": "Delegate implementation tasks from Codex to Kimi Code through a local MCP bridge.",
   "author": {
     "name": "ximenchuifeng",

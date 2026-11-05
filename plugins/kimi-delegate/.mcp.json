@@ -7,15 +7,15 @@
       ],
       "cwd": ".",
       "env": {
-        "KIMI_SERVER_URL": "http://127.0.0.1:58627",
+        "KIMI_SERVER_URL": "auto",
         "KIMI_PERMISSION_MODE": "auto",
         "KIMI_THINKING": "high",
         "KIMI_AUTO_START": "true",
-        "KIMI_COMMAND": "C:\\Users\\liuxi\\AppData\\Local\\Microsoft\\WinGet\\Links\\kimi.exe",
+        "KIMI_COMMAND": "kimi",
         "KIMI_PREFLIGHT_CACHE_MS": "5000",
         "KIMI_CODE_HOME": "",
         "KIMI_SERVER_TOKEN": "",
-        "KIMI_SERVER_ARGS": "[\"web\",\"--no-open\",\"--port\",\"58627\"]"
+        "KIMI_SERVER_ARGS": "[\"web\",\"--no-open\"]"
       }
     }
   }

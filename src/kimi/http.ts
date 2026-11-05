@@ -28,7 +28,7 @@ const FRIENDLY_AUTH_MESSAGE =
 
 export class KimiHttpClient {
   constructor(
-    private readonly serverUrl: string,
+    private serverUrl: string,
     private readonly fetchImpl: FetchLike = fetch,
     private readonly requestTimeoutMs: number = 30000,
     private serverToken?: string,
@@ -36,6 +36,10 @@ export class KimiHttpClient {
 
   setServerToken(token?: string): void {
     this.serverToken = token;
+  }
+
+  setServerUrl(serverUrl: string): void {
+    this.serverUrl = serverUrl;
   }
 
   async get<T>(path: string, query?: Record<string, string | number | boolean | undefined>): Promise<T> {

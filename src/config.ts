@@ -6,6 +6,7 @@ export type TokenSource = 'env' | 'kimi_code_home' | 'home' | 'none';
 
 export interface BridgeConfig {
   serverUrl: string;
+  autoServer?: boolean;
   defaultModel?: string;
   defaultThinking: string;
   defaultPermissionMode: 'manual' | 'auto' | 'yolo';
@@ -94,7 +95,8 @@ export function loadBridgeConfig(env: NodeJS.ProcessEnv = process.env): BridgeCo
   const { token, source } = resolveServerToken(env.KIMI_SERVER_TOKEN, kimiCodeHome);
 
   return {
-    serverUrl: normalizeServerUrl(env.KIMI_SERVER_URL ?? 'http://127.0.0.1:58627'),
+    serverUrl: env.KIMI_SERVER_URL === 'auto' ? 'http://127.0.0.1:0' : normalizeServerUrl(env.KIMI_SERVER_URL ?? 'http://127.0.0.1:58627'),
+    ...(env.KIMI_SERVER_URL === 'auto' ? { autoServer: true } : {}),
     defaultModel: env.KIMI_MODEL && env.KIMI_MODEL.trim().length > 0 ? env.KIMI_MODEL : undefined,
     defaultThinking: env.KIMI_THINKING && env.KIMI_THINKING.trim().length > 0 ? env.KIMI_THINKING : 'high',
     defaultPermissionMode,

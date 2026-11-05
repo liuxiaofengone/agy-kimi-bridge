@@ -14,7 +14,9 @@
 
 | 使用场景 | 上游基线 | 本分支 |
 | --- | --- | --- |
-| 自动启动现代 Kimi | 固定使用 `kimi server run --keep-alive` | 插件默认使用 `kimi web --no-open --port 58627`，已验证 Kimi 2.1.1 |
+| 自动启动现代 Kimi | 固定使用 `kimi server run --keep-alive` | 插件使用 `kimi web --no-open`，已验证 Kimi 2.5.0 |
+| 端口冲突 | 默认固定 58627，冲突时启动失败 | `KIMI_SERVER_URL=auto`，由 Kimi 以 `--port 0` 请求系统分配端口，发现并鉴权后复用 |
+| 启动失败诊断 | 早退错误容易退化成健康检查超时 | 就绪前持续观察子进程，返回退出码、安全错误码和任务未提交标记 |
 | 自定义启动方式 | 启动参数写在代码中 | 新增 `KIMI_SERVER_ARGS`，通过 JSON 字符串配置参数，并保留旧版回退 |
 | Windows 后台运行 | 后台启动未设置 `windowsHide` | 隐藏启动控制台，默认不自动打开浏览器 |
 | 空数据目录配置 | 子进程可能继承空的 `KIMI_CODE_HOME` | 统一解析为 `~/.kimi-code`，使子进程与桥接服务使用一致的认证目录 |
@@ -132,8 +134,8 @@ Codex 负责分析、计划和审查，Kimi 负责实现。
 | --- | --- | --- |
 | `KIMI_AUTO_START` | `true` | 服务未响应时，在任务调用前自动启动；设为 `false` 可手动管理服务 |
 | `KIMI_COMMAND` | `kimi` | 启动的可执行文件，可设置为完整路径 |
-| `KIMI_SERVER_ARGS` | `["web","--no-open","--port","58627"]`，以 JSON 字符串保存 | 配置启动参数；省略或设为空字符串时回退到旧版命令 |
-| `KIMI_SERVER_URL` | `http://127.0.0.1:58627` | 本地服务地址，自定义端口时需要与启动参数一致 |
+| `KIMI_SERVER_ARGS` | `["web","--no-open"]`，以 JSON 字符串保存 | 自动模式补充 `--port 0 --host 127.0.0.1`；旧版服务需显式地址并将参数设为空字符串 |
+| `KIMI_SERVER_URL` | `auto` | 自动发现系统分配的本机端口；手动管理服务时也可填写明确 URL |
 | `KIMI_CODE_HOME` | 空字符串，解析为 `~/.kimi-code` | Kimi 数据和认证目录；自定义时应与 Kimi Code 保持一致 |
 | `KIMI_SERVER_TOKEN` | 空字符串 | 默认自动读取本地 token；需要显式覆盖时才设置 |
 | `KIMI_PREFLIGHT_CACHE_MS` | `5000` | 成功预检查的缓存时间，单位为毫秒；`0` 表示禁用缓存 |
@@ -146,14 +148,18 @@ Codex 负责分析、计划和审查，Kimi 负责实现。
 {
   "KIMI_AUTO_START": "true",
   "KIMI_COMMAND": "kimi",
-  "KIMI_SERVER_URL": "http://127.0.0.1:58627",
-  "KIMI_SERVER_ARGS": "[\"web\",\"--no-open\",\"--port\",\"58627\"]",
+  "KIMI_SERVER_URL": "auto",
+  "KIMI_SERVER_ARGS": "[\"web\",\"--no-open\"]",
   "KIMI_CODE_HOME": "",
   "KIMI_SERVER_TOKEN": ""
 }
 ```
 
-`KIMI_SERVER_ARGS` 必须是 JSON 数组字符串，数组非空且每一项都是非空白字符串。参数直接传给可执行文件，不经过 shell 拆分。若改为端口 `60000`，请同时修改参数中的端口和 `KIMI_SERVER_URL`。
+`KIMI_SERVER_ARGS` 必须是 JSON 数组字符串，数组非空且每一项都是非空白字符串。参数直接传给可执行文件，不经过 shell 拆分。自动模式让 Kimi 在绑定时由系统分配端口，避免固定端口冲突和“先探测、后绑定”的竞争；仅监听 `127.0.0.1`，保留正常鉴权。
+
+发现结果和启动锁保存在 `KIMI_BRIDGE_STATE_DIR` 下，按 Kimi 数据目录隔离，不保存 token 或原始启动日志。MCP 重启后可复用已经鉴权的服务；地址失效时，下次任务调用会重新启动并发现地址。自动模式的 Git 基线也按数据目录标识保存，端口变化不影响后续交接证据。
+
+如果服务由你手动管理，将 `KIMI_SERVER_URL` 设为实际 URL；使用 `web` 时可省略 `--port`，桥会从 URL 派生。显式参数与 URL 端口不一致时，桥会拒绝启动。自动模式已在 Kimi 2.5.0 验证，旧版请使用明确地址和对应启动命令。详见 [启动恢复与项目规则建议](docs/kimi-startup-recovery.zh-CN.md)。
 
 ### Windows 可执行文件路径
 
@@ -175,7 +181,7 @@ JSON 中的反斜杠需要转义，不要给配置值额外添加 PowerShell 引
 
 ### 使用旧版 Kimi
 
-如果已安装的 Kimi 提供 `server` 子命令，将 `KIMI_SERVER_ARGS` 设为 `""`，任务自动启动时就会回退到：
+如果已安装的 Kimi 提供 `server` 子命令，将 `KIMI_SERVER_URL` 设为该服务的实际地址、`KIMI_SERVER_ARGS` 设为 `""`，任务自动启动时就会回退到：
 
 ```bash
 kimi server run --keep-alive
@@ -206,6 +212,7 @@ codex plugin add kimi-delegate@codex-kimi-bridge-local
 | --- | --- |
 | 对话中没有 `kimi-delegate` 工具 | 用 `codex plugin list` 确认安装和启用状态，再打开新的 Codex 对话；必要时重启 Codex |
 | 诊断为 `server_unreachable` | 检查可执行文件路径、端口和启动参数；状态检查本身不会启动服务，实际任务调用才会尝试自动启动 |
+| 返回 `KIMI_STARTUP_FAILED` / `EACCES` | 查看安全错误码和诊断命令；Windows 无 LISTEN 不代表端口可绑定，还需检查绑定/出站记录和排除范围。优先使用自动端口模式 |
 | 提示不支持 `server` 或 `web` 子命令 | 根据已安装版本的 `kimi --help` 调整 `KIMI_SERVER_ARGS`，参考现代配置或旧版回退说明 |
 | 诊断为 `auth_failed` | 检查桥接服务与 Kimi 服务的数据目录及 `server.token` 是否一致；如显式设置了 `KIMI_SERVER_TOKEN`，确认它与当前服务 token 一致 |
 | 需要查看 Kimi 的执行过程 | 打开工具返回的 `webUrl`；自动启动时默认不会替你打开浏览器 |

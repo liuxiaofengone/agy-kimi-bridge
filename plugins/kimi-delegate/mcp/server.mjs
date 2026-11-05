@@ -2983,7 +2983,7 @@ var require_compile = __commonJS({
       const schOrFunc = root.refs[ref];
       if (schOrFunc)
         return schOrFunc;
-      let _sch = resolve2.call(this, root, ref);
+      let _sch = resolve3.call(this, root, ref);
       if (_sch === void 0) {
         const schema = (_a = root.localRefs) === null || _a === void 0 ? void 0 : _a[ref];
         const { schemaId } = this.opts;
@@ -3010,7 +3010,7 @@ var require_compile = __commonJS({
     function sameSchemaEnv(s1, s2) {
       return s1.schema === s2.schema && s1.root === s2.root && s1.baseId === s2.baseId;
     }
-    function resolve2(root, ref) {
+    function resolve3(root, ref) {
       let sch;
       while (typeof (sch = this.refs[ref]) == "string")
         ref = sch;
@@ -3641,7 +3641,7 @@ var require_fast_uri = __commonJS({
       }
       return uri;
     }
-    function resolve2(baseURI, relativeURI, options) {
+    function resolve3(baseURI, relativeURI, options) {
       const schemelessOptions = options ? Object.assign({ scheme: "null" }, options) : { scheme: "null" };
       const resolved = resolveComponent(parse3(baseURI, schemelessOptions), parse3(relativeURI, schemelessOptions), schemelessOptions, true);
       schemelessOptions.skipEscape = true;
@@ -3899,7 +3899,7 @@ var require_fast_uri = __commonJS({
     var fastUri = {
       SCHEMES,
       normalize,
-      resolve: resolve2,
+      resolve: resolve3,
       resolveComponent,
       equal,
       serialize,
@@ -18979,7 +18979,7 @@ var Protocol = class {
           return;
         }
         const pollInterval = task2.pollInterval ?? this._options?.defaultTaskPollInterval ?? 1e3;
-        await new Promise((resolve2) => setTimeout(resolve2, pollInterval));
+        await new Promise((resolve3) => setTimeout(resolve3, pollInterval));
         options?.signal?.throwIfAborted();
       }
     } catch (error2) {
@@ -18996,7 +18996,7 @@ var Protocol = class {
    */
   request(request, resultSchema, options) {
     const { relatedRequestId, resumptionToken, onresumptiontoken, task, relatedTask } = options ?? {};
-    return new Promise((resolve2, reject) => {
+    return new Promise((resolve3, reject) => {
       const earlyReject = (error2) => {
         reject(error2);
       };
@@ -19074,7 +19074,7 @@ var Protocol = class {
           if (!parseResult.success) {
             reject(parseResult.error);
           } else {
-            resolve2(parseResult.data);
+            resolve3(parseResult.data);
           }
         } catch (error2) {
           reject(error2);
@@ -19335,12 +19335,12 @@ var Protocol = class {
       }
     } catch {
     }
-    return new Promise((resolve2, reject) => {
+    return new Promise((resolve3, reject) => {
       if (signal.aborted) {
         reject(new McpError(ErrorCode.InvalidRequest, "Request cancelled"));
         return;
       }
-      const timeoutId = setTimeout(resolve2, interval);
+      const timeoutId = setTimeout(resolve3, interval);
       signal.addEventListener("abort", () => {
         clearTimeout(timeoutId);
         reject(new McpError(ErrorCode.InvalidRequest, "Request cancelled"));
@@ -20440,7 +20440,7 @@ var McpServer = class {
     let task = createTaskResult.task;
     const pollInterval = task.pollInterval ?? 5e3;
     while (task.status !== "completed" && task.status !== "failed" && task.status !== "cancelled") {
-      await new Promise((resolve2) => setTimeout(resolve2, pollInterval));
+      await new Promise((resolve3) => setTimeout(resolve3, pollInterval));
       const updatedTask = await extra.taskStore.getTask(taskId);
       if (!updatedTask) {
         throw new McpError(ErrorCode.InternalError, `Task ${taskId} not found during polling`);
@@ -21089,25 +21089,25 @@ var StdioServerTransport = class {
     this.onclose?.();
   }
   send(message) {
-    return new Promise((resolve2) => {
+    return new Promise((resolve3) => {
       const json = serializeMessage(message);
       if (this._stdout.write(json)) {
-        resolve2();
+        resolve3();
       } else {
-        this._stdout.once("drain", resolve2);
+        this._stdout.once("drain", resolve3);
       }
     });
   }
 };
 
 // src/index.ts
-import { basename, resolve } from "node:path";
+import { basename, resolve as resolve2 } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // src/baseline-store.ts
-import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
-import { join } from "node:path";
-import { createHash, randomUUID } from "node:crypto";
+import { mkdir as mkdir2, readFile as readFile2, rename as rename2, rm as rm2, writeFile as writeFile2 } from "node:fs/promises";
+import { join as join2 } from "node:path";
+import { createHash as createHash2, randomUUID as randomUUID2 } from "node:crypto";
 
 // src/git.ts
 import { execFile } from "node:child_process";
@@ -21457,6 +21457,130 @@ var NodeGitInspector = class {
   }
 };
 
+// src/server-discovery.ts
+import { createHash, randomUUID } from "node:crypto";
+import { mkdir, open, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
+import { homedir } from "node:os";
+import { join, resolve } from "node:path";
+
+// src/errors.ts
+var KimiApiError = class extends Error {
+  constructor(code, message, requestId, details, httpStatus) {
+    super(message);
+    this.code = code;
+    this.requestId = requestId;
+    this.details = details;
+    this.httpStatus = httpStatus;
+    this.name = "KimiApiError";
+  }
+  code;
+  requestId;
+  details;
+  httpStatus;
+};
+var KimiNetworkError = class extends Error {
+  constructor(message, cause) {
+    super(message, { cause });
+    this.cause = cause;
+    this.name = "KimiNetworkError";
+  }
+  cause;
+};
+var BridgeToolError = class extends Error {
+  constructor(code, message, details) {
+    super(message);
+    this.code = code;
+    this.details = details;
+    this.name = "BridgeToolError";
+  }
+  code;
+  details;
+};
+
+// src/server-discovery.ts
+function automaticServerIdentity(config2) {
+  const path3 = resolve(config2.kimiCodeHome ?? join(homedir(), ".kimi-code"));
+  return `auto:${process.platform === "win32" ? path3.toLowerCase() : path3}`;
+}
+var ServerDiscovery = class {
+  constructor(config2) {
+    this.config = config2;
+    const key = createHash("sha256").update(automaticServerIdentity(config2)).digest("hex");
+    this.file = join(config2.stateDir, `server-${key}.json`);
+  }
+  config;
+  file;
+  async read() {
+    try {
+      if ((await stat(this.file)).size > 4096) return void 0;
+      const value = JSON.parse(await readFile(this.file, "utf8"));
+      if (value.schemaVersion !== 1 || typeof value.serverUrl !== "string") return void 0;
+      const url = new URL(value.serverUrl);
+      if (url.protocol !== "http:" || url.hostname !== "127.0.0.1" || !url.port || url.port === "0" || url.username || url.password || url.pathname !== "/" || url.search || url.hash) return void 0;
+      return url.origin;
+    } catch {
+      return void 0;
+    }
+  }
+  async save(serverUrl) {
+    await mkdir(this.config.stateDir, { recursive: true });
+    const temporary = `${this.file}.${randomUUID()}.tmp`;
+    try {
+      await writeFile(temporary, JSON.stringify({ schemaVersion: 1, serverUrl }), { mode: 384 });
+      await rename(temporary, this.file);
+    } finally {
+      await rm(temporary, { force: true });
+    }
+  }
+  async lock(timeoutMs) {
+    const directory = `${this.file}.locks`;
+    await mkdir(directory, { recursive: true });
+    const id = `${process.pid}-${randomUUID()}`;
+    let ownPath = join(directory, `choosing-${id}`);
+    const deadline = Date.now() + timeoutMs;
+    const participants = async () => {
+      const items = [];
+      for (const name of await readdir(directory)) {
+        const match = /^(choosing|ticket-(\d+))-(\d+)-([0-9a-f-]{36})$/.exec(name);
+        if (!match) continue;
+        const pid = Number(match[3]);
+        const ticket = match[1] === "choosing" ? 0 : Number(match[2]);
+        if (!Number.isSafeInteger(pid) || pid <= 0 || !Number.isSafeInteger(ticket)) continue;
+        const participantId = `${pid}-${match[4]}`;
+        try {
+          process.kill(pid, 0);
+        } catch (error2) {
+          if (error2.code === "ESRCH") {
+            await rm(join(directory, name), { force: true });
+            continue;
+          }
+        }
+        items.push({ name, id: participantId, ticket });
+      }
+      return items;
+    };
+    try {
+      const handle = await open(ownPath, "wx", 384);
+      await handle.close();
+      const ticket = 1 + Math.max(0, ...(await participants()).map((item) => item.ticket));
+      const chosenPath = join(directory, `ticket-${ticket}-${id}`);
+      await rename(ownPath, chosenPath);
+      ownPath = chosenPath;
+      while (true) {
+        const ahead = (await participants()).some((item) => item.id !== id && (item.ticket === 0 || item.ticket < ticket || item.ticket === ticket && item.id < id));
+        if (!ahead) return async () => {
+          await rm(ownPath, { force: true });
+        };
+        if (Date.now() >= deadline) throw new BridgeToolError("KIMI_STARTUP_LOCK_TIMEOUT", "Another bridge process is starting Kimi. Retry without submitting a duplicate task.", { submissionState: "not_submitted" });
+        await new Promise((resolve3) => setTimeout(resolve3, 100));
+      }
+    } catch (error2) {
+      await rm(ownPath, { force: true });
+      throw error2;
+    }
+  }
+};
+
 // src/baseline-store.ts
 function safeFileName(input) {
   return Buffer.from(input, "utf8").toString("base64url");
@@ -21465,20 +21589,20 @@ function normalizeServerUrl(input) {
   return input.trim().toLowerCase();
 }
 function serverDirName(serverUrl) {
-  return createHash("sha256").update(normalizeServerUrl(serverUrl), "utf8").digest("hex");
+  return createHash2("sha256").update(normalizeServerUrl(serverUrl), "utf8").digest("hex");
 }
 var FileBaselineStore = class {
   serverDir;
   constructor(options) {
-    this.serverDir = join(options.stateDir, serverDirName(options.serverUrl));
+    this.serverDir = join2(options.stateDir, serverDirName(options.serverUrl));
   }
   filePath(sessionId) {
-    return join(this.serverDir, `${safeFileName(sessionId)}.json`);
+    return join2(this.serverDir, `${safeFileName(sessionId)}.json`);
   }
   async save(sessionId, baseline) {
     const file = this.filePath(sessionId);
-    const tempFile = `${file}.${randomUUID()}.tmp`;
-    await mkdir(this.serverDir, { recursive: true });
+    const tempFile = `${file}.${randomUUID2()}.tmp`;
+    await mkdir2(this.serverDir, { recursive: true });
     const payload = {
       schema_version: baseline.schemaVersion,
       base_commit: baseline.baseCommit,
@@ -21494,11 +21618,11 @@ var FileBaselineStore = class {
       }));
     }
     try {
-      await writeFile(tempFile, JSON.stringify(payload), "utf8");
-      await rename(tempFile, file);
+      await writeFile2(tempFile, JSON.stringify(payload), "utf8");
+      await rename2(tempFile, file);
     } catch (err) {
       try {
-        await rm(tempFile, { force: true });
+        await rm2(tempFile, { force: true });
       } catch {
       }
       throw err;
@@ -21507,7 +21631,7 @@ var FileBaselineStore = class {
   async load(sessionId) {
     let raw;
     try {
-      raw = await readFile(this.filePath(sessionId), "utf8");
+      raw = await readFile2(this.filePath(sessionId), "utf8");
     } catch {
       return void 0;
     }
@@ -21552,13 +21676,13 @@ var InMemoryBaselineStore = class {
   }
 };
 function createDefaultBaselineStore(config2) {
-  return new FileBaselineStore({ stateDir: config2.stateDir, serverUrl: config2.serverUrl });
+  return new FileBaselineStore({ stateDir: config2.stateDir, serverUrl: config2.autoServer ? automaticServerIdentity(config2) : config2.serverUrl });
 }
 
 // src/config.ts
 import { readFileSync } from "node:fs";
-import { homedir } from "node:os";
-import { join as join2 } from "node:path";
+import { homedir as homedir2 } from "node:os";
+import { join as join3 } from "node:path";
 function normalizeServerUrl2(raw) {
   const url = new URL(raw);
   url.pathname = url.pathname.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "");
@@ -21589,14 +21713,14 @@ function parseKimiServerArgs(raw) {
   }
   return parsed;
 }
-function resolveServerToken(envToken, kimiCodeHome, homeDir = homedir()) {
+function resolveServerToken(envToken, kimiCodeHome, homeDir = homedir2()) {
   const trimmedEnv = envToken?.trim();
   if (trimmedEnv && trimmedEnv.length > 0) {
     return { token: trimmedEnv, source: "env" };
   }
   const candidates = [
-    ...kimiCodeHome ? [{ path: join2(kimiCodeHome, "server.token"), source: "kimi_code_home" }] : [],
-    { path: join2(homeDir, ".kimi-code", "server.token"), source: "home" }
+    ...kimiCodeHome ? [{ path: join3(kimiCodeHome, "server.token"), source: "kimi_code_home" }] : [],
+    { path: join3(homeDir, ".kimi-code", "server.token"), source: "home" }
   ];
   for (const candidate of candidates) {
     try {
@@ -21613,7 +21737,8 @@ function loadBridgeConfig(env = process.env) {
   const kimiCodeHome = env.KIMI_CODE_HOME && env.KIMI_CODE_HOME.trim().length > 0 ? env.KIMI_CODE_HOME.trim() : void 0;
   const { token, source } = resolveServerToken(env.KIMI_SERVER_TOKEN, kimiCodeHome);
   return {
-    serverUrl: normalizeServerUrl2(env.KIMI_SERVER_URL ?? "http://127.0.0.1:58627"),
+    serverUrl: env.KIMI_SERVER_URL === "auto" ? "http://127.0.0.1:0" : normalizeServerUrl2(env.KIMI_SERVER_URL ?? "http://127.0.0.1:58627"),
+    ...env.KIMI_SERVER_URL === "auto" ? { autoServer: true } : {},
     defaultModel: env.KIMI_MODEL && env.KIMI_MODEL.trim().length > 0 ? env.KIMI_MODEL : void 0,
     defaultThinking: env.KIMI_THINKING && env.KIMI_THINKING.trim().length > 0 ? env.KIMI_THINKING : "high",
     defaultPermissionMode,
@@ -21626,43 +21751,9 @@ function loadBridgeConfig(env = process.env) {
     kimiServerArgs: parseKimiServerArgs(env.KIMI_SERVER_ARGS),
     preflightCacheMs: parsePreflightCacheMs(env.KIMI_PREFLIGHT_CACHE_MS),
     kimiCodeHome,
-    stateDir: env.KIMI_BRIDGE_STATE_DIR && env.KIMI_BRIDGE_STATE_DIR.trim().length > 0 ? env.KIMI_BRIDGE_STATE_DIR.trim() : join2(homedir(), ".codex-kimi-bridge", "state")
+    stateDir: env.KIMI_BRIDGE_STATE_DIR && env.KIMI_BRIDGE_STATE_DIR.trim().length > 0 ? env.KIMI_BRIDGE_STATE_DIR.trim() : join3(homedir2(), ".codex-kimi-bridge", "state")
   };
 }
-
-// src/errors.ts
-var KimiApiError = class extends Error {
-  constructor(code, message, requestId, details, httpStatus) {
-    super(message);
-    this.code = code;
-    this.requestId = requestId;
-    this.details = details;
-    this.httpStatus = httpStatus;
-    this.name = "KimiApiError";
-  }
-  code;
-  requestId;
-  details;
-  httpStatus;
-};
-var KimiNetworkError = class extends Error {
-  constructor(message, cause) {
-    super(message, { cause });
-    this.cause = cause;
-    this.name = "KimiNetworkError";
-  }
-  cause;
-};
-var BridgeToolError = class extends Error {
-  constructor(code, message, details) {
-    super(message);
-    this.code = code;
-    this.details = details;
-    this.name = "BridgeToolError";
-  }
-  code;
-  details;
-};
 
 // src/kimi/http.ts
 function isErrorEnvelope(value) {
@@ -21682,6 +21773,9 @@ var KimiHttpClient = class {
   serverToken;
   setServerToken(token) {
     this.serverToken = token;
+  }
+  setServerUrl(serverUrl) {
+    this.serverUrl = serverUrl;
   }
   async get(path3, query) {
     return this.request("GET", path3, void 0, query);
@@ -21963,7 +22057,7 @@ async function waitUntilIdle(input) {
     const remaining = deadline - Date.now();
     const sleepMs = Math.max(0, Math.min(intervalMs - elapsed, remaining));
     if (sleepMs > 0) {
-      await new Promise((resolve2) => setTimeout(resolve2, sleepMs));
+      await new Promise((resolve3) => setTimeout(resolve3, sleepMs));
     }
   } while (Date.now() < deadline);
   return { status: "timeout" };
@@ -22059,7 +22153,7 @@ async function expandGitStatusEntries(input) {
 }
 
 // src/tools.ts
-import { readdir, realpath } from "node:fs/promises";
+import { readdir as readdir2, realpath } from "node:fs/promises";
 import path2 from "node:path";
 async function promptQueueUnsupported(error2, kimi, sessionId) {
   if (!(error2 instanceof KimiApiError)) return false;
@@ -22074,7 +22168,7 @@ function findPrompt(queue, promptId) {
   return queue.queued.find((prompt) => prompt.prompt_id === promptId);
 }
 async function sleep(ms) {
-  if (ms > 0) await new Promise((resolve2) => setTimeout(resolve2, ms));
+  if (ms > 0) await new Promise((resolve3) => setTimeout(resolve3, ms));
 }
 async function assertSessionCanAcceptPrompt(kimi, sessionId, allowQueue) {
   if (allowQueue) return;
@@ -22364,7 +22458,7 @@ async function buildDelegateAndWaitDiagnostics(kimi, sessionId, status, webUrl, 
 var defaultFileLister = {
   async listFiles(baseDir, relativeDir) {
     const fullDir = path2.join(baseDir, relativeDir);
-    const entries = await readdir(fullDir, { withFileTypes: true });
+    const entries = await readdir2(fullDir, { withFileTypes: true });
     const files = [];
     for (const entry of entries) {
       const childRelativePath = path2.posix.join(relativeDir, entry.name);
@@ -22966,9 +23060,137 @@ function createToolHandlers(deps) {
 }
 
 // src/preflight.ts
-import { spawn as defaultSpawn } from "node:child_process";
-import { homedir as homedir2 } from "node:os";
-import { join as join3 } from "node:path";
+import { homedir as homedir4 } from "node:os";
+import { join as join5 } from "node:path";
+
+// src/startup.ts
+import { spawn } from "node:child_process";
+import { homedir as homedir3 } from "node:os";
+import { join as join4 } from "node:path";
+function startupArgs(config2) {
+  const args = [...config2.kimiServerArgs ?? ["server", "run", "--keep-alive"]];
+  if (args[0] !== "web") {
+    if (config2.autoServer) throw new BridgeToolError("KIMI_STARTUP_CONFIG_INVALID", "Automatic ports require kimi web.", { submissionState: "not_submitted" });
+    return args;
+  }
+  const port = config2.autoServer ? "0" : new URL(config2.serverUrl).port || (config2.serverUrl.startsWith("https:") ? "443" : "80");
+  let portFound = false;
+  for (let i = 1; i < args.length; i++) {
+    if (args[i] === "--port" || args[i].startsWith("--port=")) {
+      const value = args[i] === "--port" ? args[++i] : args[i].slice(7);
+      if (portFound || value !== port) throw new BridgeToolError("KIMI_STARTUP_CONFIG_INVALID", "KIMI_SERVER_ARGS port must match KIMI_SERVER_URL (use port 0 in automatic mode).", { submissionState: "not_submitted" });
+      portFound = true;
+    }
+    if (config2.autoServer && (args[i] === "--host" || args[i].startsWith("--host="))) {
+      throw new BridgeToolError("KIMI_STARTUP_CONFIG_INVALID", "Automatic mode manages the loopback bind host.", { submissionState: "not_submitted" });
+    }
+  }
+  if (!portFound) args.push("--port", port);
+  if (config2.autoServer) args.push("--host", "127.0.0.1");
+  return args;
+}
+function observeStartup(config2, args, spawnImpl = spawn) {
+  const codes = /* @__PURE__ */ new Set();
+  let failureError;
+  let rejectFailure;
+  const failure = new Promise((_, reject) => {
+    rejectFailure = reject;
+  });
+  void failure.catch(() => {
+  });
+  let resolveAddress;
+  const address = new Promise((resolve3) => {
+    resolveAddress = resolve3;
+  });
+  let observing = true;
+  const tails = ["", ""];
+  const scan = (index, chunk) => {
+    if (!observing) return;
+    for (let offset = 0; offset < chunk.length; offset += 1024) {
+      const text = tails[index] + chunk.subarray(offset, offset + 1024).toString("utf8");
+      for (const code of text.match(/\b(?:EACCES|EADDRINUSE|ENOENT|EPERM|10013)\b/g) ?? []) codes.add(code);
+      const match = text.match(/http:\/\/127\.0\.0\.1:([1-9]\d{0,4})(?=[/\s#:])/);
+      if (match && Number(match[1]) <= 65535) resolveAddress(`http://127.0.0.1:${Number(match[1])}`);
+      tails[index] = text.slice(-128);
+    }
+  };
+  const fail = (exitCode, signal, errorCode) => {
+    if (!observing || failureError) return;
+    if (errorCode && /^(ENOENT|EACCES|EPERM)$/.test(errorCode)) codes.add(errorCode);
+    failureError = new BridgeToolError("KIMI_STARTUP_FAILED", "Kimi server exited or failed to spawn before readiness.", {
+      stage: "preflight",
+      submissionState: "not_submitted",
+      exitCode,
+      signal,
+      serverUrl: config2.serverUrl,
+      diagnosticCodes: [...codes],
+      ...process.platform === "win32" && new URL(config2.serverUrl).port !== "0" ? {
+        diagnosticCommands: [
+          `Get-NetTCPConnection -LocalPort ${Number(new URL(config2.serverUrl).port)}`,
+          "netsh int ipv4 show excludedportrange protocol=tcp",
+          "netsh int ipv6 show excludedportrange protocol=tcp",
+          "netsh int ipv4 show dynamicport tcp"
+        ]
+      } : {},
+      nextActions: [
+        "Check the Kimi executable and startup configuration.",
+        "For EACCES/10013 or EADDRINUSE, inspect all TCP states and Windows excluded port ranges; no LISTEN entry does not prove a port is available.",
+        "Use KIMI_SERVER_URL=auto with kimi web to let the OS allocate a port."
+      ]
+    });
+    rejectFailure(failureError);
+  };
+  let child;
+  try {
+    child = spawnImpl(config2.kimiCommand, args, {
+      detached: true,
+      stdio: ["ignore", "pipe", "pipe"],
+      windowsHide: true,
+      env: { ...process.env, KIMI_CODE_HOME: config2.kimiCodeHome ?? join4(homedir3(), ".kimi-code") }
+    });
+  } catch (error2) {
+    fail(null, null, error2.code);
+    throw failureError;
+  }
+  child.stdout?.on("data", (chunk) => scan(0, chunk));
+  child.stderr?.on("data", (chunk) => scan(1, chunk));
+  child.on("error", (error2) => fail(null, null, error2.code));
+  child.on("exit", (code, signal) => fail(code, signal));
+  return {
+    address,
+    failure,
+    assertRunning() {
+      if (failureError) throw failureError;
+    },
+    async stop() {
+      if (child.exitCode != null || child.signalCode != null) return true;
+      return new Promise((resolve3) => {
+        const timer = setTimeout(() => {
+          child.off("exit", exited);
+          resolve3(false);
+        }, 1e3);
+        const exited = () => {
+          clearTimeout(timer);
+          resolve3(true);
+        };
+        child.once("exit", exited);
+        if (!child.kill()) {
+          clearTimeout(timer);
+          child.off("exit", exited);
+          resolve3(false);
+        }
+      });
+    },
+    detach() {
+      observing = false;
+      tails.fill("");
+      child.unref();
+      for (const stream of [child.stdout, child.stderr]) stream?.unref?.();
+    }
+  };
+}
+
+// src/preflight.ts
 var DEFAULT_STARTUP_TIMEOUT_MS = 3e4;
 var DEFAULT_POLL_INTERVAL_MS = 500;
 function shellQuote(arg) {
@@ -22976,13 +23198,13 @@ function shellQuote(arg) {
   return `'${arg.replace(/'/g, "'\\''")}'`;
 }
 function defaultResolveToken(config2) {
-  return resolveServerToken(config2.envServerToken, config2.kimiCodeHome, homedir2());
+  return resolveServerToken(config2.envServerToken, config2.kimiCodeHome, homedir4());
 }
 var KimiPreflight = class {
   constructor(config2, http, options = {}) {
     this.config = config2;
     this.http = http;
-    this.spawnImpl = options.spawn ?? defaultSpawn;
+    this.spawnImpl = options.spawn;
     this.resolveToken = options.resolveToken ?? defaultResolveToken;
     this.now = options.now ?? Date.now;
     this.startupTimeoutMs = options.startupTimeoutMs ?? DEFAULT_STARTUP_TIMEOUT_MS;
@@ -22997,9 +23219,46 @@ var KimiPreflight = class {
   pollIntervalMs;
   lastSuccessStatus;
   lastSuccessAt;
+  inFlight;
+  endpointGeneration = 0;
   async ensureReady() {
+    if (this.inFlight) return this.inFlight;
+    const operation = this.ensureReadyOnce();
+    this.inFlight = operation;
+    try {
+      return await operation;
+    } finally {
+      this.inFlight = void 0;
+    }
+  }
+  async ensureReadyOnce() {
     const cached2 = this.readCache();
     if (cached2) return cached2;
+    if (this.config.autoServer) {
+      const discovery = new ServerDiscovery(this.config);
+      const saved = await discovery.read();
+      if (saved) this.setServerUrl(saved);
+      let status2 = await this.checkOnce();
+      if (status2.healthzOk) {
+        if (!status2.authOk) status2 = await this.verifyAuthWithRetry();
+        this.writeCache(status2);
+        return status2;
+      }
+      if (!this.config.autoStart) throw new BridgeToolError("KIMI_SERVER_UNREACHABLE", "No discovered Kimi server is reachable and auto-start is disabled.", { submissionState: "not_submitted" });
+      const release = await discovery.lock(this.startupTimeoutMs);
+      try {
+        const latest = await discovery.read();
+        if (latest) this.setServerUrl(latest);
+        status2 = await this.checkOnce();
+        if (!status2.healthzOk) status2 = await this.startServer();
+        else if (!status2.authOk) status2 = await this.verifyAuthWithRetry();
+        await discovery.save(this.config.serverUrl);
+        this.writeCache(status2);
+        return status2;
+      } finally {
+        await release();
+      }
+    }
     let status = await this.checkOnce();
     if (!status.healthzOk) {
       if (!this.config.autoStart) {
@@ -23007,8 +23266,7 @@ var KimiPreflight = class {
           `Kimi server is not reachable at ${this.config.serverUrl} and KIMI_AUTO_START is disabled. Start the server manually or set KIMI_AUTO_START=true.`
         );
       }
-      await this.startServer();
-      status = await this.waitForHealthz();
+      status = await this.startServer();
     }
     if (!status.authOk) {
       status = await this.verifyAuthWithRetry();
@@ -23019,7 +23277,21 @@ var KimiPreflight = class {
     return status;
   }
   async getStatus() {
+    const generation = this.endpointGeneration;
+    if (this.config.autoServer && !this.inFlight) {
+      const saved = await new ServerDiscovery(this.config).read();
+      if (saved && !this.inFlight && generation === this.endpointGeneration) this.setServerUrl(saved);
+    }
     return this.checkOnce();
+  }
+  setServerUrl(url) {
+    if (this.config.serverUrl !== url) {
+      this.endpointGeneration++;
+      this.lastSuccessStatus = void 0;
+      this.lastSuccessAt = void 0;
+    }
+    this.config.serverUrl = url;
+    this.http.setServerUrl(url);
   }
   readCache() {
     if (this.config.preflightCacheMs <= 0 || !this.lastSuccessStatus || this.lastSuccessAt == null) {
@@ -23044,6 +23316,9 @@ var KimiPreflight = class {
   }
   async checkOnce() {
     const diagnostics = [];
+    if (this.config.autoServer && new URL(this.config.serverUrl).port === "0") {
+      return this.buildStatus(false, false, ["No authenticated automatic endpoint has been discovered yet."]);
+    }
     let healthzOk = false;
     try {
       await this.http.get("/healthz");
@@ -23079,7 +23354,7 @@ var KimiPreflight = class {
     };
   }
   startupCommand(manual = false) {
-    const args = this.config.kimiServerArgs ?? (manual ? ["server", "start"] : ["server", "run", "--keep-alive"]);
+    const args = this.config.autoServer ? ["web", "--no-open", "--port", "0", "--host", "127.0.0.1"] : this.config.kimiServerArgs ?? (manual ? ["server", "start"] : ["server", "run", "--keep-alive"]);
     if (process.platform !== "win32") {
       return [this.config.kimiCommand, ...args].map(shellQuote).join(" ");
     }
@@ -23140,14 +23415,14 @@ var KimiPreflight = class {
     }
     const check2 = (path3) => `test -f ${shellQuote(path3)} && echo "token file exists" || echo "token file missing"`;
     if (serverTokenSource === "kimi_code_home" && kimiCodeHome) {
-      return [check2(join3(kimiCodeHome, "server.token"))];
+      return [check2(join5(kimiCodeHome, "server.token"))];
     }
     if (serverTokenSource === "home") {
-      return [check2(join3(homedir2(), ".kimi-code", "server.token"))];
+      return [check2(join5(homedir4(), ".kimi-code", "server.token"))];
     }
-    const commands = [check2(join3(homedir2(), ".kimi-code", "server.token"))];
+    const commands = [check2(join5(homedir4(), ".kimi-code", "server.token"))];
     if (kimiCodeHome) {
-      commands.push(check2(join3(kimiCodeHome, "server.token")));
+      commands.push(check2(join5(kimiCodeHome, "server.token")));
     }
     return commands;
   }
@@ -23160,52 +23435,57 @@ var KimiPreflight = class {
     }
   }
   async startServer() {
-    return new Promise((resolve2, reject) => {
-      let settled = false;
-      const args = this.config.kimiServerArgs ?? ["server", "run", "--keep-alive"];
-      const child = this.spawnImpl(this.config.kimiCommand, args, {
-        detached: true,
-        stdio: "ignore",
-        windowsHide: true,
-        env: {
-          ...process.env,
-          KIMI_CODE_HOME: this.config.kimiCodeHome ?? join3(homedir2(), ".kimi-code")
+    const observer = observeStartup(this.config, startupArgs(this.config), this.spawnImpl);
+    let stopped = false;
+    let timer;
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new BridgeToolError(
+        "KIMI_STARTUP_TIMEOUT",
+        `Kimi server did not respond to healthz/auth within ${this.startupTimeoutMs}ms.`,
+        {
+          stage: "preflight",
+          submissionState: "not_submitted",
+          serverUrl: this.config.serverUrl,
+          startupMayStillBeRunning: true
         }
-      });
-      const finish = (error2) => {
-        if (settled) return;
-        settled = true;
-        if (error2) {
-          reject(error2);
-        } else {
-          child.unref();
-          resolve2();
-        }
-      };
-      child.on("error", (error2) => finish(new Error(`Failed to start Kimi server: ${error2.message}`)));
-      child.on("exit", (code) => {
-        if (code !== 0 && code !== null) {
-          finish(new Error(`Kimi server exited with code ${code}. Is '${this.config.kimiCommand}' installed and on PATH?`));
-        }
-      });
-      setTimeout(() => finish(), 0);
+      )), this.startupTimeoutMs);
     });
+    const ready = async () => {
+      if (this.config.autoServer) {
+        const url = await observer.address;
+        if (stopped) throw new Error("Startup observation ended.");
+        this.setServerUrl(url);
+      }
+      const status = await this.waitForHealthz(() => stopped);
+      if (stopped) throw new Error("Startup observation ended.");
+      const authenticated = status.authOk ? status : await this.verifyAuthWithRetry();
+      observer.assertRunning();
+      return authenticated;
+    };
+    try {
+      return await Promise.race([ready(), observer.failure, timeout]);
+    } catch (error2) {
+      stopped = true;
+      const terminated = await observer.stop();
+      if (error2 instanceof BridgeToolError) {
+        throw new BridgeToolError(error2.code, error2.message, { ...error2.details, startupMayStillBeRunning: !terminated });
+      }
+      throw error2;
+    } finally {
+      stopped = true;
+      clearTimeout(timer);
+      observer.detach();
+    }
   }
-  async waitForHealthz() {
-    const deadline = this.now() + this.startupTimeoutMs;
-    let lastStatus;
-    while (this.now() < deadline) {
-      lastStatus = await this.checkOnce();
+  async waitForHealthz(stopped) {
+    while (!stopped()) {
+      const lastStatus = await this.checkOnce();
       if (lastStatus.healthzOk) {
         return lastStatus;
       }
-      await new Promise((resolve2) => setTimeout(resolve2, this.pollIntervalMs));
+      await new Promise((resolve3) => setTimeout(resolve3, this.pollIntervalMs));
     }
-    const diagnostics = lastStatus?.diagnostics ?? ["Kimi server did not become ready in time."];
-    throw new Error(
-      `Kimi server did not respond to healthz within ${this.startupTimeoutMs}ms.
-${diagnostics.join("\n")}`
-    );
+    throw new Error("Startup observation ended.");
   }
   async verifyAuthWithRetry() {
     let authOk = await this.checkAuth();
@@ -23218,8 +23498,10 @@ ${diagnostics.join("\n")}`
       authOk = await this.checkAuth();
       if (authOk) return this.buildStatus(true, true, []);
     }
-    throw new Error(
-      `Kimi server authentication failed. The token may be invalid, or the server is using a different KIMI_CODE_HOME. For local smoke testing only, start Kimi with --dangerous-bypass-auth.`
+    throw new BridgeToolError(
+      "KIMI_AUTH_FAILED",
+      `Kimi server authentication failed. The token may be invalid, or the server is using a different KIMI_CODE_HOME. For local smoke testing only, start Kimi with --dangerous-bypass-auth.`,
+      { stage: "preflight", submissionState: "not_submitted" }
     );
   }
   formatError(error2) {
@@ -23459,7 +23741,7 @@ function isDirectExecution(metaUrl, argvPath = process.argv[1]) {
     return false;
   }
   try {
-    return resolve(fileURLToPath(metaUrl)) === resolve(argvPath);
+    return resolve2(fileURLToPath(metaUrl)) === resolve2(argvPath);
   } catch {
     return false;
   }

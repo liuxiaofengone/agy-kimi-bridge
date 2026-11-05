@@ -81,6 +81,7 @@ function makeTokenAwareHttp(initialToken: string | undefined, validToken: string
 function makeFakeChildProcess(): ChildProcess {
   const child = new EventEmitter() as unknown as ChildProcess;
   (child as unknown as { unref: () => void }).unref = () => {};
+  child.kill = () => { child.emit('exit', null, 'SIGTERM'); return true; };
   return child;
 }
 
@@ -116,7 +117,7 @@ describe('KimiPreflight', () => {
     expect(result.healthzOk).toBe(true);
     expect(spawn).toHaveBeenCalledWith('kimi', ['server', 'run', '--keep-alive'], expect.objectContaining({
       detached: true,
-      stdio: 'ignore',
+      stdio: ['ignore', 'pipe', 'pipe'],
       windowsHide: true,
     }));
   });
@@ -132,7 +133,7 @@ describe('KimiPreflight', () => {
     expect((await promise).status).toBe('ready');
     expect(spawn).toHaveBeenCalledWith('kimi', args, expect.objectContaining({
       detached: true,
-      stdio: 'ignore',
+      stdio: ['ignore', 'pipe', 'pipe'],
       windowsHide: true,
     }));
   });

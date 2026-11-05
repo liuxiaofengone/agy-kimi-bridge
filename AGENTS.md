@@ -75,26 +75,35 @@ Then open a new Codex thread or restart Codex if the tool list does not refresh.
 
 ## Kimi Server
 
-Default server:
+The bundled plugin uses automatic local server discovery:
 
 ```text
-http://127.0.0.1:58627
+KIMI_SERVER_URL=auto
+KIMI_SERVER_ARGS=["web","--no-open"]
 ```
+
+The bridge starts modern Kimi with `--port 0 --host 127.0.0.1`, reads the OS-assigned endpoint, verifies health/auth, and persists only the endpoint under `KIMI_BRIDGE_STATE_DIR`. Do not hard-code port 58627 in consuming projects. Use `kimi_bridge_status.serverUrl` / `webBaseUrl` or a task's `webUrl`. New MCP processes reuse the discovered server. The discovery file and startup lock are scoped to the Kimi data home; auto-mode Git baselines use that identity rather than the changing port.
+
+`kimi_bridge_status` only reads discovery state and checks live health; a first-use `server_unreachable` does not itself trigger startup. Use a read-only preflight-triggering call such as `kimi_recent_sessions` to verify automatic startup before submitting implementation.
+
+`KIMI_STARTUP_FAILED`, `KIMI_STARTUP_TIMEOUT`, `KIMI_AUTH_FAILED`, and startup configuration/lock errors expose `submissionState: not_submitted`. No session or prompt has been submitted by that failed call. If `startupMayStillBeRunning` is true, resolve the startup process state before retrying. A timeout after task submission has different semantics: recover the original session/prompt and do not duplicate work.
 
 The bridge supports both legacy Kimi Session `status` responses and Kimi 0.27+ `busy` / `pending_interaction` / `last_turn_reason` responses. All lifecycle decisions normalize these into one Bridge runtime status. `kimi_bridge_status` may expose safe `serverVersion` and `backend` metadata from `/api/v1/meta`, but this metadata is diagnostic only and never selects the compatibility path.
 
-Recommended daily setup:
+For manually managed or older Kimi versions, configure an explicit `KIMI_SERVER_URL` and use the startup commands supported by that version. A legacy example is:
 
 ```bash
 kimi server install
 kimi server start
 ```
 
-The bridge can also auto-start Kimi with:
+With explicit URL and blank `KIMI_SERVER_ARGS`, legacy auto-start uses:
 
 ```bash
 kimi server run --keep-alive
 ```
+
+With explicit URL and `web` arguments, omit `--port` to derive it from the URL; conflicting explicit ports are rejected. Automatic discovery requires modern Kimi with port-0 support (verified on 2.5.0). See `docs/kimi-startup-recovery.zh-CN.md` for verification and paste-ready consuming-project rules.
 
 Token resolution order:
 

@@ -1,9 +1,10 @@
-import { spawn as defaultSpawn, type ChildProcess } from 'node:child_process';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { resolveServerToken, type BridgeConfig, type TokenSource } from './config.js';
-import { KimiApiError, KimiNetworkError } from './errors.js';
+import { BridgeToolError, KimiApiError, KimiNetworkError } from './errors.js';
 import type { KimiHttpClient } from './kimi/http.js';
+import { observeStartup, startupArgs, type StartupSpawn } from './startup.js';
+import { ServerDiscovery } from './server-discovery.js';
 
 export interface BridgeStatus {
   serverUrl: string;
@@ -27,7 +28,7 @@ export interface BridgeStatus {
 }
 
 export interface PreflightOptions {
-  spawn?: (command: string, args: readonly string[], options: { detached: boolean; stdio: 'ignore'; windowsHide: boolean; env: NodeJS.ProcessEnv }) => ChildProcess;
+  spawn?: StartupSpawn;
   resolveToken?: (config: BridgeConfig) => { token?: string; source: TokenSource };
   now?: () => number;
   startupTimeoutMs?: number;
@@ -47,20 +48,22 @@ function defaultResolveToken(config: BridgeConfig): { token?: string; source: To
 }
 
 export class KimiPreflight {
-  private readonly spawnImpl: NonNullable<PreflightOptions['spawn']>;
+  private readonly spawnImpl?: StartupSpawn;
   private readonly resolveToken: NonNullable<PreflightOptions['resolveToken']>;
   private readonly now: NonNullable<PreflightOptions['now']>;
   private readonly startupTimeoutMs: number;
   private readonly pollIntervalMs: number;
   private lastSuccessStatus?: BridgeStatus;
   private lastSuccessAt?: number;
+  private inFlight?: Promise<BridgeStatus>;
+  private endpointGeneration = 0;
 
   constructor(
     private readonly config: BridgeConfig,
     private readonly http: KimiHttpClient,
     options: PreflightOptions = {},
   ) {
-    this.spawnImpl = options.spawn ?? defaultSpawn;
+    this.spawnImpl = options.spawn;
     this.resolveToken = options.resolveToken ?? defaultResolveToken;
     this.now = options.now ?? Date.now;
     this.startupTimeoutMs = options.startupTimeoutMs ?? DEFAULT_STARTUP_TIMEOUT_MS;
@@ -68,8 +71,40 @@ export class KimiPreflight {
   }
 
   async ensureReady(): Promise<BridgeStatus> {
+    if (this.inFlight) return this.inFlight;
+    const operation = this.ensureReadyOnce();
+    this.inFlight = operation;
+    try { return await operation; } finally { this.inFlight = undefined; }
+  }
+
+  private async ensureReadyOnce(): Promise<BridgeStatus> {
     const cached = this.readCache();
     if (cached) return cached;
+
+    if (this.config.autoServer) {
+      const discovery = new ServerDiscovery(this.config);
+      const saved = await discovery.read();
+      if (saved) this.setServerUrl(saved);
+      let status = await this.checkOnce();
+      if (status.healthzOk) {
+        if (!status.authOk) status = await this.verifyAuthWithRetry();
+        this.writeCache(status);
+        return status;
+      }
+      if (!this.config.autoStart) throw new BridgeToolError('KIMI_SERVER_UNREACHABLE', 'No discovered Kimi server is reachable and auto-start is disabled.', { submissionState: 'not_submitted' });
+      const release = await discovery.lock(this.startupTimeoutMs);
+      try {
+        // Another MCP process may have finished startup while this caller waited.
+        const latest = await discovery.read();
+        if (latest) this.setServerUrl(latest);
+        status = await this.checkOnce();
+        if (!status.healthzOk) status = await this.startServer();
+        else if (!status.authOk) status = await this.verifyAuthWithRetry();
+        await discovery.save(this.config.serverUrl);
+        this.writeCache(status);
+        return status;
+      } finally { await release(); }
+    }
 
     let status = await this.checkOnce();
 
@@ -80,8 +115,7 @@ export class KimiPreflight {
             `Start the server manually or set KIMI_AUTO_START=true.`,
         );
       }
-      await this.startServer();
-      status = await this.waitForHealthz();
+      status = await this.startServer();
     }
 
     if (!status.authOk) {
@@ -96,7 +130,23 @@ export class KimiPreflight {
   }
 
   async getStatus(): Promise<BridgeStatus> {
+    const generation = this.endpointGeneration;
+    // A live diagnostic must not redirect an in-progress startup back to a stale file.
+    if (this.config.autoServer && !this.inFlight) {
+      const saved = await new ServerDiscovery(this.config).read();
+      if (saved && !this.inFlight && generation === this.endpointGeneration) this.setServerUrl(saved);
+    }
     return this.checkOnce();
+  }
+
+  private setServerUrl(url: string): void {
+    if (this.config.serverUrl !== url) {
+      this.endpointGeneration++;
+      this.lastSuccessStatus = undefined;
+      this.lastSuccessAt = undefined;
+    }
+    this.config.serverUrl = url;
+    this.http.setServerUrl(url);
   }
 
   private readCache(): BridgeStatus | undefined {
@@ -124,6 +174,9 @@ export class KimiPreflight {
 
   private async checkOnce(): Promise<BridgeStatus> {
     const diagnostics: string[] = [];
+    if (this.config.autoServer && new URL(this.config.serverUrl).port === '0') {
+      return this.buildStatus(false, false, ['No authenticated automatic endpoint has been discovered yet.']);
+    }
 
     let healthzOk = false;
     try {
@@ -164,7 +217,7 @@ export class KimiPreflight {
   }
 
   private startupCommand(manual = false): string {
-    const args = this.config.kimiServerArgs ??
+    const args = this.config.autoServer ? ['web', '--no-open', '--port', '0', '--host', '127.0.0.1'] : this.config.kimiServerArgs ??
       (manual ? ['server', 'start'] : ['server', 'run', '--keep-alive']);
     if (process.platform !== 'win32') {
       return [this.config.kimiCommand, ...args].map(shellQuote).join(' ');
@@ -264,59 +317,54 @@ export class KimiPreflight {
     }
   }
 
-  private async startServer(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      let settled = false;
-      const args = this.config.kimiServerArgs ?? ['server', 'run', '--keep-alive'];
-      const child = this.spawnImpl(this.config.kimiCommand, args, {
-        detached: true,
-        stdio: 'ignore',
-        windowsHide: true,
-        env: {
-          ...process.env,
-          KIMI_CODE_HOME: this.config.kimiCodeHome ?? join(homedir(), '.kimi-code'),
-        },
-      });
-
-      const finish = (error?: Error) => {
-        if (settled) return;
-        settled = true;
-        if (error) {
-          reject(error);
-        } else {
-          child.unref();
-          resolve();
-        }
-      };
-
-      child.on('error', (error) => finish(new Error(`Failed to start Kimi server: ${error.message}`)));
-      child.on('exit', (code) => {
-        if (code !== 0 && code !== null) {
-          finish(new Error(`Kimi server exited with code ${code}. Is '${this.config.kimiCommand}' installed and on PATH?`));
-        }
-      });
-
-      // Give the spawn a tick to fail immediately; otherwise resolve and let healthz polling detect problems.
-      setTimeout(() => finish(), 0);
+  private async startServer(): Promise<BridgeStatus> {
+    const observer = observeStartup(this.config, startupArgs(this.config), this.spawnImpl);
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new BridgeToolError('KIMI_STARTUP_TIMEOUT',
+        `Kimi server did not respond to healthz/auth within ${this.startupTimeoutMs}ms.`,
+        { stage: 'preflight', submissionState: 'not_submitted', serverUrl: this.config.serverUrl,
+          startupMayStillBeRunning: true })), this.startupTimeoutMs);
     });
+    const ready = async () => {
+      if (this.config.autoServer) {
+        const url = await observer.address;
+        if (stopped) throw new Error('Startup observation ended.');
+        this.setServerUrl(url);
+      }
+      const status = await this.waitForHealthz(() => stopped);
+      if (stopped) throw new Error('Startup observation ended.');
+      const authenticated = status.authOk ? status : await this.verifyAuthWithRetry();
+      observer.assertRunning();
+      return authenticated;
+    };
+    try {
+      return await Promise.race([ready(), observer.failure, timeout]);
+    } catch (error) {
+      stopped = true;
+      const terminated = await observer.stop();
+      if (error instanceof BridgeToolError) {
+        throw new BridgeToolError(error.code, error.message, { ...(error.details as object), startupMayStillBeRunning: !terminated });
+      }
+      throw error;
+    } finally {
+      stopped = true;
+      clearTimeout(timer);
+      observer.detach();
+    }
   }
 
-  private async waitForHealthz(): Promise<BridgeStatus> {
-    const deadline = this.now() + this.startupTimeoutMs;
-    let lastStatus: BridgeStatus | undefined;
-
-    while (this.now() < deadline) {
-      lastStatus = await this.checkOnce();
+  private async waitForHealthz(stopped: () => boolean): Promise<BridgeStatus> {
+    while (!stopped()) {
+      const lastStatus = await this.checkOnce();
       if (lastStatus.healthzOk) {
         return lastStatus;
       }
       await new Promise((resolve) => setTimeout(resolve, this.pollIntervalMs));
     }
 
-    const diagnostics = lastStatus?.diagnostics ?? ['Kimi server did not become ready in time.'];
-    throw new Error(
-      `Kimi server did not respond to healthz within ${this.startupTimeoutMs}ms.\n${diagnostics.join('\n')}`,
-    );
+    throw new Error('Startup observation ended.');
   }
 
   private async verifyAuthWithRetry(): Promise<BridgeStatus> {
@@ -332,9 +380,10 @@ export class KimiPreflight {
       if (authOk) return this.buildStatus(true, true, []);
     }
 
-    throw new Error(
+    throw new BridgeToolError('KIMI_AUTH_FAILED',
       `Kimi server authentication failed. The token may be invalid, or the server is using a different KIMI_CODE_HOME. ` +
         `For local smoke testing only, start Kimi with --dangerous-bypass-auth.`,
+      { stage: 'preflight', submissionState: 'not_submitted' },
     );
   }
 
