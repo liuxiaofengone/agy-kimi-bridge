@@ -96,12 +96,12 @@ export class KimiHttpClient {
       if (response.status === 401) {
         const requestId = isErrorEnvelope(parsed) ? parsed.request_id : undefined;
         const code = isErrorEnvelope(parsed) ? parsed.code : response.status;
-        throw new KimiApiError(code, FRIENDLY_AUTH_MESSAGE, requestId);
+        throw new KimiApiError(code, FRIENDLY_AUTH_MESSAGE, requestId, undefined, response.status);
       }
       if (isErrorEnvelope(parsed)) {
-        throw new KimiApiError(parsed.code, parsed.msg, parsed.request_id, parsed.details);
+        throw new KimiApiError(parsed.code, parsed.msg, parsed.request_id, parsed.details, response.status);
       }
-      throw new KimiApiError(response.status, `HTTP error ${response.status} ${response.statusText}`, undefined);
+      throw new KimiApiError(response.status, `HTTP error ${response.status} ${response.statusText}`, undefined, undefined, response.status);
     }
 
     const envelope = parsed as Envelope<T> | undefined;
@@ -112,7 +112,7 @@ export class KimiHttpClient {
       );
     }
     if (envelope.code !== 0) {
-      throw new KimiApiError(envelope.code, envelope.msg, envelope.request_id, envelope.details);
+      throw new KimiApiError(envelope.code, envelope.msg, envelope.request_id, envelope.details, response.status);
     }
     return envelope.data;
   }

@@ -78,6 +78,8 @@ developer's environment. These optional scripts are not included in this
 repository; replace their paths with your own tools if available. They are not
 required for first-time installation or configuration updates.
 
+本次生命周期保护的中文说明和调用示例见 [Kimi 委派生命周期保护](docs/kimi-lifecycle-guardrails.zh-CN.md)。
+
 ```bash
 pnpm install
 pnpm test
@@ -222,6 +224,17 @@ The `kimi_bridge_status` tool always performs a live check and does not use or u
 `kimi_bridge_status` is safe to call at any time: it does not trigger auto-start, refresh the token, or modify the success cache.
 
 The bridge accepts both legacy Kimi Session `status` responses and Kimi 0.27+ `busy` / `pending_interaction` / `last_turn_reason` responses. All lifecycle decisions use one normalized runtime status.
+
+### Prompt lifecycle safeguards
+
+- Existing-session submissions reject active or queued work with `SESSION_BUSY` by default. Use `allowQueue: true` only when deliberately adding a separate queued prompt.
+- `kimi_delegate_and_wait` tracks the submitted `promptId`, waits for that prompt and the session queue to settle, and only then builds a review package. A transient idle state does not prove completion.
+- Use `kimi_wait_for_prompt` after a timeout. `settled` means the prompt left the queue; inspect the handoff and diff before accepting the work.
+- `kimi_abort` requests cancellation of the current main-agent turn only. Use `kimi_abort_and_wait` before transferring workspace ownership and require `terminationConfirmed: true`.
+- Queued prompts cannot be individually cancelled through the supported Kimi API. An explicitly targeted queued prompt is refused without aborting another active turn.
+- Older servers without prompt-queue support degrade conservatively with `queueEvidence: unavailable`; they never claim complete termination.
+
+完整中文说明、对话调用示例和能力边界见 [Kimi 委派生命周期保护](docs/kimi-lifecycle-guardrails.zh-CN.md)。
 
 `failed` is a terminal Bridge status. A failed delegate does not produce a successful `reviewPackage`; open `webUrl`, inspect the failure, and use `kimi_continue_task` to continue the same session when recovery is appropriate. `failed` and `aborted` sessions are never automatically reused by dedupe.
 

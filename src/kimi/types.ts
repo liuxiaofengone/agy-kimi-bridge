@@ -33,6 +33,19 @@ export interface PromptSubmitResult {
   status: 'running' | 'queued';
 }
 
+export interface PromptQueueItem {
+  prompt_id: string;
+  user_message_id: string;
+  status: 'running' | 'queued' | 'blocked';
+  content: Array<{ type: string; [key: string]: unknown }>;
+  created_at: string;
+}
+
+export interface PromptQueueSnapshot {
+  active: PromptQueueItem | null;
+  queued: PromptQueueItem[];
+}
+
 export interface SessionStatus {
   status?: unknown;
   busy?: unknown;

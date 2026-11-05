@@ -167,7 +167,11 @@ export class NodeGitInspector implements GitInspector {
     const baseBranch = branchResult.ok ? branchResult.stdout.toString('utf8').trim() : undefined;
 
     const initialDirtyPaths: string[] = [];
-    const statusResult = await this.tryGit(cwd, ['status', '--porcelain=v1', '-z', '--untracked-files=all'], this.metadataMaxBuffer);
+    // Collapse untracked directories (`build/`) instead of expanding every
+    // generated file. The baseline is diagnostic metadata sent to the Kimi
+    // server with session creation, so large build outputs can otherwise
+    // exceed the server's request-body limit.
+    const statusResult = await this.tryGit(cwd, ['status', '--porcelain=v1', '-z', '--untracked-files=normal'], this.metadataMaxBuffer);
     if (statusResult.ok) {
       for (const entry of parseNulStatus(statusResult.stdout)) {
         initialDirtyPaths.push(entry.path);

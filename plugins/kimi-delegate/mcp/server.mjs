@@ -32,9 +32,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/code.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/code.js
 var require_code = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/code.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/code.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.regexpCode = exports.getEsmExportName = exports.getProperty = exports.safeStringify = exports.stringify = exports.strConcat = exports.addCodeArg = exports.str = exports._ = exports.nil = exports._Code = exports.Name = exports.IDENTIFIER = exports._CodeOrName = void 0;
@@ -186,9 +186,9 @@ var require_code = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/scope.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/scope.js
 var require_scope = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/scope.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/scope.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ValueScope = exports.ValueScopeName = exports.Scope = exports.varKinds = exports.UsedValueState = void 0;
@@ -331,9 +331,9 @@ var require_scope = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/index.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/index.js
 var require_codegen = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/index.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.or = exports.and = exports.not = exports.CodeGen = exports.operators = exports.varKinds = exports.ValueScopeName = exports.ValueScope = exports.Scope = exports.Name = exports.regexpCode = exports.stringify = exports.getProperty = exports.nil = exports.strConcat = exports.str = exports._ = void 0;
@@ -1051,9 +1051,9 @@ var require_codegen = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/util.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/util.js
 var require_util = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/util.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/util.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.checkStrictMode = exports.getErrorPath = exports.Type = exports.useFunc = exports.setEvaluated = exports.evaluatedPropsToName = exports.mergeEvaluated = exports.eachItem = exports.unescapeJsonPointer = exports.escapeJsonPointer = exports.escapeFragment = exports.unescapeFragment = exports.schemaRefOrVal = exports.schemaHasRulesButRef = exports.schemaHasRules = exports.checkUnknownRules = exports.alwaysValidSchema = exports.toHash = void 0;
@@ -1218,9 +1218,9 @@ var require_util = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/names.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/names.js
 var require_names = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/names.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/names.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -1257,9 +1257,9 @@ var require_names = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/errors.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/errors.js
 var require_errors = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/errors.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/errors.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.extendErrors = exports.resetErrorsCount = exports.reportExtraError = exports.reportError = exports.keyword$DataError = exports.keywordError = void 0;
@@ -1379,9 +1379,9 @@ var require_errors = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/boolSchema.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/boolSchema.js
 var require_boolSchema = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/boolSchema.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/boolSchema.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.boolOrEmptySchema = exports.topBoolOrEmptySchema = void 0;
@@ -1430,9 +1430,9 @@ var require_boolSchema = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/rules.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/rules.js
 var require_rules = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/rules.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/rules.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getRules = exports.isJSONType = void 0;
@@ -1461,9 +1461,9 @@ var require_rules = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/applicability.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/applicability.js
 var require_applicability = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/applicability.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/applicability.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.shouldUseRule = exports.shouldUseGroup = exports.schemaHasRulesForType = void 0;
@@ -1484,9 +1484,9 @@ var require_applicability = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/dataType.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/dataType.js
 var require_dataType = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/dataType.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/dataType.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.reportTypeError = exports.checkDataTypes = exports.checkDataType = exports.coerceAndCheckDataType = exports.getJSONTypes = exports.getSchemaTypes = exports.DataType = void 0;
@@ -1668,9 +1668,9 @@ var require_dataType = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/defaults.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/defaults.js
 var require_defaults = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/defaults.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/defaults.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.assignDefaults = void 0;
@@ -1705,9 +1705,9 @@ var require_defaults = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/code.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/code.js
 var require_code2 = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/code.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/code.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateUnion = exports.validateArray = exports.usePattern = exports.callValidateCode = exports.schemaProperties = exports.allSchemaProperties = exports.noPropertyInData = exports.propertyInData = exports.isOwnProperty = exports.hasPropFunc = exports.reportMissingProp = exports.checkMissingProp = exports.checkReportMissingProp = void 0;
@@ -1838,9 +1838,9 @@ var require_code2 = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/keyword.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/keyword.js
 var require_keyword = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/keyword.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/keyword.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateKeywordUsage = exports.validSchemaType = exports.funcKeywordCode = exports.macroKeywordCode = void 0;
@@ -1956,9 +1956,9 @@ var require_keyword = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/subschema.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/subschema.js
 var require_subschema = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/subschema.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/subschema.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.extendSubschemaMode = exports.extendSubschemaData = exports.getSubschema = void 0;
@@ -2039,9 +2039,9 @@ var require_subschema = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal/index.js
+// node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal/index.js
 var require_fast_deep_equal = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal/index.js"(exports, module) {
+  "node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal/index.js"(exports, module) {
     "use strict";
     module.exports = function equal(a, b) {
       if (a === b) return true;
@@ -2074,9 +2074,9 @@ var require_fast_deep_equal = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/json-schema-traverse@1.0.0/node_modules/json-schema-traverse/index.js
+// node_modules/.pnpm/json-schema-traverse@1.0.0/node_modules/json-schema-traverse/index.js
 var require_json_schema_traverse = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/json-schema-traverse@1.0.0/node_modules/json-schema-traverse/index.js"(exports, module) {
+  "node_modules/.pnpm/json-schema-traverse@1.0.0/node_modules/json-schema-traverse/index.js"(exports, module) {
     "use strict";
     var traverse = module.exports = function(schema, opts, cb) {
       if (typeof opts == "function") {
@@ -2162,9 +2162,9 @@ var require_json_schema_traverse = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/resolve.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/resolve.js
 var require_resolve = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/resolve.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/resolve.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getSchemaRefs = exports.resolveUrl = exports.normalizeId = exports._getFullPath = exports.getFullPath = exports.inlineRef = void 0;
@@ -2318,9 +2318,9 @@ var require_resolve = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/index.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/index.js
 var require_validate = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/index.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getData = exports.KeywordCxt = exports.validateFunctionCode = void 0;
@@ -2826,9 +2826,9 @@ var require_validate = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/validation_error.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/validation_error.js
 var require_validation_error = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/validation_error.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/validation_error.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var ValidationError = class extends Error {
@@ -2842,9 +2842,9 @@ var require_validation_error = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/ref_error.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/ref_error.js
 var require_ref_error = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/ref_error.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/ref_error.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var resolve_1 = require_resolve();
@@ -2859,9 +2859,9 @@ var require_ref_error = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/index.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/index.js
 var require_compile = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/index.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.resolveSchema = exports.getCompilingSchema = exports.resolveRef = exports.compileSchema = exports.SchemaEnv = void 0;
@@ -3083,9 +3083,9 @@ var require_compile = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/data.json
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/data.json
 var require_data = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/data.json"(exports, module) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/data.json"(exports, module) {
     module.exports = {
       $id: "https://raw.githubusercontent.com/ajv-validator/ajv/master/lib/refs/data.json#",
       description: "Meta-schema for $data reference (JSON AnySchema extension proposal)",
@@ -3102,9 +3102,9 @@ var require_data = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/utils.js
+// node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/utils.js
 var require_utils = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/utils.js"(exports, module) {
+  "node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/utils.js"(exports, module) {
     "use strict";
     var isUUID = RegExp.prototype.test.bind(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/iu);
     var isIPv4 = RegExp.prototype.test.bind(/^(?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)$/u);
@@ -3415,9 +3415,9 @@ var require_utils = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/schemes.js
+// node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/schemes.js
 var require_schemes = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/schemes.js"(exports, module) {
+  "node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/schemes.js"(exports, module) {
     "use strict";
     var { isUUID } = require_utils();
     var URN_REG = /([\da-z][\d\-a-z]{0,31}):((?:[\w!$'()*+,\-.:;=@]|%[\da-f]{2})+)/iu;
@@ -3625,9 +3625,9 @@ var require_schemes = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/index.js
+// node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/index.js
 var require_fast_uri = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/index.js"(exports, module) {
+  "node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/index.js"(exports, module) {
     "use strict";
     var { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, escapePreservingEscapes, reescapeHostDelimiters, isIPv4, nonSimpleDomain } = require_utils();
     var { SCHEMES, getSchemeHandler } = require_schemes();
@@ -3911,9 +3911,9 @@ var require_fast_uri = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/uri.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/uri.js
 var require_uri = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/uri.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/uri.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var uri = require_fast_uri();
@@ -3922,9 +3922,9 @@ var require_uri = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/core.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/core.js
 var require_core = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/core.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/core.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.CodeGen = exports.Name = exports.nil = exports.stringify = exports.str = exports._ = exports.KeywordCxt = void 0;
@@ -4533,9 +4533,9 @@ var require_core = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/id.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/id.js
 var require_id = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/id.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/id.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var def = {
@@ -4548,9 +4548,9 @@ var require_id = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/ref.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/ref.js
 var require_ref = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/ref.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/ref.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.callRef = exports.getValidate = void 0;
@@ -4670,9 +4670,9 @@ var require_ref = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/index.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/index.js
 var require_core2 = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/index.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var id_1 = require_id();
@@ -4691,9 +4691,9 @@ var require_core2 = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitNumber.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitNumber.js
 var require_limitNumber = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitNumber.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitNumber.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -4723,9 +4723,9 @@ var require_limitNumber = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/multipleOf.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/multipleOf.js
 var require_multipleOf = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/multipleOf.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/multipleOf.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -4751,9 +4751,9 @@ var require_multipleOf = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/ucs2length.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/ucs2length.js
 var require_ucs2length = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/ucs2length.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/ucs2length.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function ucs2length(str) {
@@ -4777,9 +4777,9 @@ var require_ucs2length = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitLength.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitLength.js
 var require_limitLength = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitLength.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitLength.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -4809,9 +4809,9 @@ var require_limitLength = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/pattern.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/pattern.js
 var require_pattern = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/pattern.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/pattern.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -4846,9 +4846,9 @@ var require_pattern = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitProperties.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitProperties.js
 var require_limitProperties = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitProperties.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitProperties.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -4875,9 +4875,9 @@ var require_limitProperties = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/required.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/required.js
 var require_required = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/required.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/required.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -4957,9 +4957,9 @@ var require_required = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitItems.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitItems.js
 var require_limitItems = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitItems.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitItems.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -4986,9 +4986,9 @@ var require_limitItems = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/equal.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/equal.js
 var require_equal = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/equal.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/equal.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var equal = require_fast_deep_equal();
@@ -4997,9 +4997,9 @@ var require_equal = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js
 var require_uniqueItems = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var dataType_1 = require_dataType();
@@ -5064,9 +5064,9 @@ var require_uniqueItems = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/const.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/const.js
 var require_const = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/const.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/const.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5093,9 +5093,9 @@ var require_const = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/enum.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/enum.js
 var require_enum = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/enum.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/enum.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5142,9 +5142,9 @@ var require_enum = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/index.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/index.js
 var require_validation = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/index.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var limitNumber_1 = require_limitNumber();
@@ -5180,9 +5180,9 @@ var require_validation = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js
 var require_additionalItems = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateAdditionalItems = void 0;
@@ -5233,9 +5233,9 @@ var require_additionalItems = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items.js
 var require_items = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateTuple = void 0;
@@ -5290,9 +5290,9 @@ var require_items = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js
 var require_prefixItems = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var items_1 = require_items();
@@ -5307,9 +5307,9 @@ var require_prefixItems = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items2020.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items2020.js
 var require_items2020 = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items2020.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items2020.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5342,9 +5342,9 @@ var require_items2020 = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/contains.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/contains.js
 var require_contains = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/contains.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/contains.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5436,9 +5436,9 @@ var require_contains = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/dependencies.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/dependencies.js
 var require_dependencies = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/dependencies.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/dependencies.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateSchemaDeps = exports.validatePropertyDeps = exports.error = void 0;
@@ -5530,9 +5530,9 @@ var require_dependencies = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js
 var require_propertyNames = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5573,9 +5573,9 @@ var require_propertyNames = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js
 var require_additionalProperties = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -5679,9 +5679,9 @@ var require_additionalProperties = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/properties.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/properties.js
 var require_properties = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/properties.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/properties.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var validate_1 = require_validate();
@@ -5737,9 +5737,9 @@ var require_properties = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js
 var require_patternProperties = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -5811,9 +5811,9 @@ var require_patternProperties = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/not.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/not.js
 var require_not = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/not.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/not.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var util_1 = require_util();
@@ -5842,9 +5842,9 @@ var require_not = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/anyOf.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/anyOf.js
 var require_anyOf = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/anyOf.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/anyOf.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -5859,9 +5859,9 @@ var require_anyOf = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/oneOf.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/oneOf.js
 var require_oneOf = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/oneOf.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/oneOf.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5917,9 +5917,9 @@ var require_oneOf = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/allOf.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/allOf.js
 var require_allOf = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/allOf.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/allOf.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var util_1 = require_util();
@@ -5944,9 +5944,9 @@ var require_allOf = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/if.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/if.js
 var require_if = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/if.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/if.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -6013,9 +6013,9 @@ var require_if = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/thenElse.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/thenElse.js
 var require_thenElse = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/thenElse.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/thenElse.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var util_1 = require_util();
@@ -6031,9 +6031,9 @@ var require_thenElse = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/index.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/index.js
 var require_applicator = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/index.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var additionalItems_1 = require_additionalItems();
@@ -6079,9 +6079,9 @@ var require_applicator = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/format.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/format.js
 var require_format = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/format.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/format.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -6169,9 +6169,9 @@ var require_format = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/index.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/index.js
 var require_format2 = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/index.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var format_1 = require_format();
@@ -6180,9 +6180,9 @@ var require_format2 = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/metadata.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/metadata.js
 var require_metadata = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/metadata.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/metadata.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.contentVocabulary = exports.metadataVocabulary = void 0;
@@ -6203,9 +6203,9 @@ var require_metadata = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/draft7.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/draft7.js
 var require_draft7 = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/draft7.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/draft7.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var core_1 = require_core2();
@@ -6225,9 +6225,9 @@ var require_draft7 = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/types.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/types.js
 var require_types = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/types.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/types.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DiscrError = void 0;
@@ -6239,9 +6239,9 @@ var require_types = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/index.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/index.js
 var require_discriminator = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/index.js"(exports) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -6344,9 +6344,9 @@ var require_discriminator = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/json-schema-draft-07.json
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/json-schema-draft-07.json
 var require_json_schema_draft_07 = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/json-schema-draft-07.json"(exports, module) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/json-schema-draft-07.json"(exports, module) {
     module.exports = {
       $schema: "http://json-schema.org/draft-07/schema#",
       $id: "http://json-schema.org/draft-07/schema#",
@@ -6501,9 +6501,9 @@ var require_json_schema_draft_07 = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/ajv.js
+// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/ajv.js
 var require_ajv = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/ajv.js"(exports, module) {
+  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/ajv.js"(exports, module) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.MissingRefError = exports.ValidationError = exports.CodeGen = exports.Name = exports.nil = exports.stringify = exports.str = exports._ = exports.KeywordCxt = exports.Ajv = void 0;
@@ -6571,9 +6571,9 @@ var require_ajv = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/formats.js
+// node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/formats.js
 var require_formats = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/formats.js"(exports) {
+  "node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/formats.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.formatNames = exports.fastFormats = exports.fullFormats = void 0;
@@ -6774,9 +6774,9 @@ var require_formats = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/limit.js
+// node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/limit.js
 var require_limit = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/limit.js"(exports) {
+  "node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/limit.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.formatLimitDefinition = void 0;
@@ -6846,9 +6846,9 @@ var require_limit = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/index.js
+// node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/index.js
 var require_dist = __commonJS({
-  "../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/index.js"(exports, module) {
+  "node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/index.js"(exports, module) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var formats_1 = require_formats();
@@ -6888,7 +6888,7 @@ var require_dist = __commonJS({
   }
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/external.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/external.js
 var external_exports = {};
 __export(external_exports, {
   BRAND: () => BRAND,
@@ -7000,7 +7000,7 @@ __export(external_exports, {
   void: () => voidType
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/util.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/util.js
 var util;
 (function(util2) {
   util2.assertEqual = (_) => {
@@ -7134,7 +7134,7 @@ var getParsedType = (data) => {
   }
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/ZodError.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/ZodError.js
 var ZodIssueCode = util.arrayToEnum([
   "invalid_type",
   "invalid_literal",
@@ -7252,7 +7252,7 @@ ZodError.create = (issues) => {
   return error2;
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/locales/en.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/locales/en.js
 var errorMap = (issue2, _ctx) => {
   let message;
   switch (issue2.code) {
@@ -7355,7 +7355,7 @@ var errorMap = (issue2, _ctx) => {
 };
 var en_default = errorMap;
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/errors.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/errors.js
 var overrideErrorMap = en_default;
 function setErrorMap(map) {
   overrideErrorMap = map;
@@ -7364,7 +7364,7 @@ function getErrorMap() {
   return overrideErrorMap;
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
   const { data, path: path3, errorMaps, issueData } = params;
   const fullPath = [...path3, ...issueData.path || []];
@@ -7474,14 +7474,14 @@ var isDirty = (x) => x.status === "dirty";
 var isValid = (x) => x.status === "valid";
 var isAsync = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/errorUtil.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil;
 (function(errorUtil2) {
   errorUtil2.errToObj = (message) => typeof message === "string" ? { message } : message || {};
   errorUtil2.toString = (message) => typeof message === "string" ? message : message?.message;
 })(errorUtil || (errorUtil = {}));
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
   constructor(parent, value, path3, key) {
     this._cachedPath = [];
@@ -10929,7 +10929,7 @@ var coerce = {
 };
 var NEVER = INVALID;
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/core.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/core.js
 var NEVER2 = Object.freeze({
   status: "aborted"
 });
@@ -10988,7 +10988,7 @@ function config(newConfig) {
   return globalConfig;
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/util.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/util.js
 var util_exports = {};
 __export(util_exports, {
   BIGINT_FORMAT_RANGES: () => BIGINT_FORMAT_RANGES,
@@ -11509,7 +11509,7 @@ var Class = class {
   }
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/errors.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/errors.js
 var initializer = (inst, def) => {
   inst.name = "$ZodError";
   Object.defineProperty(inst, "_zod", {
@@ -11584,7 +11584,7 @@ function formatError(error2, _mapper) {
   return fieldErrors;
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/parse.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/parse.js
 var _parse = (_Err) => (schema, value, _ctx, _params) => {
   const ctx = _ctx ? Object.assign(_ctx, { async: false }) : { async: false };
   const result = schema._zod.run({ value, issues: [] }, ctx);
@@ -11636,7 +11636,7 @@ var _safeParseAsync = (_Err) => async (schema, value, _ctx) => {
 };
 var safeParseAsync = /* @__PURE__ */ _safeParseAsync($ZodRealError);
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/regexes.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/regexes.js
 var cuid = /^[cC][^\s-]{8,}$/;
 var cuid2 = /^[0-9a-z]+$/;
 var ulid = /^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$/;
@@ -11694,7 +11694,7 @@ var _null = /null/i;
 var lowercase = /^[^A-Z]*$/;
 var uppercase = /^[^a-z]*$/;
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/checks.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/checks.js
 var $ZodCheck = /* @__PURE__ */ $constructor("$ZodCheck", (inst, def) => {
   var _a;
   inst._zod ?? (inst._zod = {});
@@ -12079,7 +12079,7 @@ var $ZodCheckOverwrite = /* @__PURE__ */ $constructor("$ZodCheckOverwrite", (ins
   };
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/doc.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/doc.js
 var Doc = class {
   constructor(args = []) {
     this.content = [];
@@ -12115,14 +12115,14 @@ var Doc = class {
   }
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/versions.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/versions.js
 var version = {
   major: 4,
   minor: 0,
   patch: 0
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/schemas.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/schemas.js
 var $ZodType = /* @__PURE__ */ $constructor("$ZodType", (inst, def) => {
   var _a;
   inst ?? (inst = {});
@@ -13360,7 +13360,7 @@ function handleRefineResult(result, payload, input, inst) {
   }
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/locales/en.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/locales/en.js
 var parsedType = (data) => {
   const t = typeof data;
   switch (t) {
@@ -13478,7 +13478,7 @@ function en_default2() {
   };
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/registries.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/registries.js
 var $ZodRegistry = class {
   constructor() {
     this._map = /* @__PURE__ */ new Map();
@@ -13526,7 +13526,7 @@ function registry() {
 }
 var globalRegistry = /* @__PURE__ */ registry();
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/api.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/api.js
 function _string(Class2, params) {
   return new Class2({
     type: "string",
@@ -13965,7 +13965,7 @@ function _refine(Class2, fn, _params) {
   return schema;
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/to-json-schema.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/to-json-schema.js
 var JSONSchemaGenerator = class {
   constructor(params) {
     this.counter = 0;
@@ -14732,7 +14732,7 @@ function isTransforming(_schema, _ctx) {
   throw new Error(`Unknown schema type: ${def.type}`);
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/mini/schemas.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/mini/schemas.js
 var ZodMiniType = /* @__PURE__ */ $constructor("ZodMiniType", (inst, def) => {
   if (!inst._zod)
     throw new Error("Uninitialized schema in ZodMiniType.");
@@ -14778,7 +14778,7 @@ function object(shape, params) {
   return new ZodMiniObject(def);
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-compat.js
+// node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-compat.js
 function isZ4Schema(s) {
   const schema = s;
   return !!schema._zod;
@@ -14922,7 +14922,7 @@ function getLiteralValue(schema) {
   return void 0;
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/iso.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/iso.js
 var iso_exports2 = {};
 __export(iso_exports2, {
   ZodISODate: () => ZodISODate,
@@ -14963,7 +14963,7 @@ function duration2(params) {
   return _isoDuration(ZodISODuration, params);
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/errors.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/errors.js
 var initializer2 = (inst, issues) => {
   $ZodError.init(inst, issues);
   inst.name = "ZodError";
@@ -14997,13 +14997,13 @@ var ZodRealError = $constructor("ZodError", initializer2, {
   Parent: Error
 });
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/parse.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/parse.js
 var parse2 = /* @__PURE__ */ _parse(ZodRealError);
 var parseAsync2 = /* @__PURE__ */ _parseAsync(ZodRealError);
 var safeParse3 = /* @__PURE__ */ _safeParse(ZodRealError);
 var safeParseAsync3 = /* @__PURE__ */ _safeParseAsync(ZodRealError);
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/schemas.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/schemas.js
 var ZodType2 = /* @__PURE__ */ $constructor("ZodType", (inst, def) => {
   $ZodType.init(inst, def);
   inst.def = def;
@@ -15614,10 +15614,10 @@ function preprocess(fn, schema) {
   return pipe(transform(fn), schema);
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/external.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/external.js
 config(en_default2());
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/types.js
+// node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/types.js
 var LATEST_PROTOCOL_VERSION = "2025-11-25";
 var SUPPORTED_PROTOCOL_VERSIONS = [LATEST_PROTOCOL_VERSION, "2025-06-18", "2025-03-26", "2024-11-05", "2024-10-07"];
 var RELATED_TASK_META_KEY = "io.modelcontextprotocol/related-task";
@@ -17148,12 +17148,12 @@ var UrlElicitationRequiredError = class extends McpError {
   }
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/interfaces.js
+// node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/interfaces.js
 function isTerminal(status) {
   return status === "completed" || status === "failed" || status === "cancelled";
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/Options.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/Options.js
 var ignoreOverride = /* @__PURE__ */ Symbol("Let zodToJsonSchema decide on which parser to use");
 var defaultOptions = {
   name: void 0,
@@ -17187,7 +17187,7 @@ var getDefaultOptions = (options) => typeof options === "string" ? {
   ...options
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/Refs.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/Refs.js
 var getRefs = (options) => {
   const _options = getDefaultOptions(options);
   const currentPath = _options.name !== void 0 ? [..._options.basePath, _options.definitionPath, _options.name] : _options.basePath;
@@ -17208,7 +17208,7 @@ var getRefs = (options) => {
   };
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/errorMessages.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/errorMessages.js
 function addErrorMessage(res, key, errorMessage, refs) {
   if (!refs?.errorMessages)
     return;
@@ -17224,7 +17224,7 @@ function setResponseValueAndErrors(res, key, value, errorMessage, refs) {
   addErrorMessage(res, key, errorMessage, refs);
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/getRelativePath.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/getRelativePath.js
 var getRelativePath = (pathA, pathB) => {
   let i = 0;
   for (; i < pathA.length && i < pathB.length; i++) {
@@ -17234,7 +17234,7 @@ var getRelativePath = (pathA, pathB) => {
   return [(pathA.length - i).toString(), ...pathB.slice(i)].join("/");
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/any.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/any.js
 function parseAnyDef(refs) {
   if (refs.target !== "openAi") {
     return {};
@@ -17250,7 +17250,7 @@ function parseAnyDef(refs) {
   };
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/array.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/array.js
 function parseArrayDef(def, refs) {
   const res = {
     type: "array"
@@ -17274,7 +17274,7 @@ function parseArrayDef(def, refs) {
   return res;
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/bigint.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/bigint.js
 function parseBigintDef(def, refs) {
   const res = {
     type: "integer",
@@ -17320,24 +17320,24 @@ function parseBigintDef(def, refs) {
   return res;
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/boolean.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/boolean.js
 function parseBooleanDef() {
   return {
     type: "boolean"
   };
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/branded.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/branded.js
 function parseBrandedDef(_def, refs) {
   return parseDef(_def.type._def, refs);
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/catch.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/catch.js
 var parseCatchDef = (def, refs) => {
   return parseDef(def.innerType._def, refs);
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/date.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/date.js
 function parseDateDef(def, refs, overrideDateStrategy) {
   const strategy = overrideDateStrategy ?? refs.dateStrategy;
   if (Array.isArray(strategy)) {
@@ -17396,7 +17396,7 @@ var integerDateParser = (def, refs) => {
   return res;
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/default.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/default.js
 function parseDefaultDef(_def, refs) {
   return {
     ...parseDef(_def.innerType._def, refs),
@@ -17404,12 +17404,12 @@ function parseDefaultDef(_def, refs) {
   };
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/effects.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/effects.js
 function parseEffectsDef(_def, refs) {
   return refs.effectStrategy === "input" ? parseDef(_def.schema._def, refs) : parseAnyDef(refs);
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/enum.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/enum.js
 function parseEnumDef(def) {
   return {
     type: "string",
@@ -17417,7 +17417,7 @@ function parseEnumDef(def) {
   };
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/intersection.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/intersection.js
 var isJsonSchema7AllOfType = (type) => {
   if ("type" in type && type.type === "string")
     return false;
@@ -17459,7 +17459,7 @@ function parseIntersectionDef(def, refs) {
   } : void 0;
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/literal.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/literal.js
 function parseLiteralDef(def, refs) {
   const parsedType2 = typeof def.value;
   if (parsedType2 !== "bigint" && parsedType2 !== "number" && parsedType2 !== "boolean" && parsedType2 !== "string") {
@@ -17479,7 +17479,7 @@ function parseLiteralDef(def, refs) {
   };
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/string.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/string.js
 var emojiRegex2 = void 0;
 var zodPatterns = {
   /**
@@ -17804,7 +17804,7 @@ function stringifyRegExpWithFlags(regex, refs) {
   return pattern;
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/record.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/record.js
 function parseRecordDef(def, refs) {
   if (refs.target === "openAi") {
     console.warn("Warning: OpenAI may not support records in schemas! Try an array of key-value pairs instead.");
@@ -17856,7 +17856,7 @@ function parseRecordDef(def, refs) {
   return schema;
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/map.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/map.js
 function parseMapDef(def, refs) {
   if (refs.mapStrategy === "record") {
     return parseRecordDef(def, refs);
@@ -17881,7 +17881,7 @@ function parseMapDef(def, refs) {
   };
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/nativeEnum.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/nativeEnum.js
 function parseNativeEnumDef(def) {
   const object3 = def.values;
   const actualKeys = Object.keys(def.values).filter((key) => {
@@ -17895,7 +17895,7 @@ function parseNativeEnumDef(def) {
   };
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/never.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/never.js
 function parseNeverDef(refs) {
   return refs.target === "openAi" ? void 0 : {
     not: parseAnyDef({
@@ -17905,7 +17905,7 @@ function parseNeverDef(refs) {
   };
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/null.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/null.js
 function parseNullDef(refs) {
   return refs.target === "openApi3" ? {
     enum: ["null"],
@@ -17915,7 +17915,7 @@ function parseNullDef(refs) {
   };
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/union.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/union.js
 var primitiveMappings = {
   ZodString: "string",
   ZodNumber: "number",
@@ -17983,7 +17983,7 @@ var asAnyOf = (def, refs) => {
   return anyOf.length ? { anyOf } : void 0;
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/nullable.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/nullable.js
 function parseNullableDef(def, refs) {
   if (["ZodString", "ZodNumber", "ZodBigInt", "ZodBoolean", "ZodNull"].includes(def.innerType._def.typeName) && (!def.innerType._def.checks || !def.innerType._def.checks.length)) {
     if (refs.target === "openApi3") {
@@ -18015,7 +18015,7 @@ function parseNullableDef(def, refs) {
   return base && { anyOf: [base, { type: "null" }] };
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/number.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/number.js
 function parseNumberDef(def, refs) {
   const res = {
     type: "number"
@@ -18064,7 +18064,7 @@ function parseNumberDef(def, refs) {
   return res;
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/object.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/object.js
 function parseObjectDef(def, refs) {
   const forceOptionalIntoNullable = refs.target === "openAi";
   const result = {
@@ -18134,7 +18134,7 @@ function safeIsOptional(schema) {
   }
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/optional.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/optional.js
 var parseOptionalDef = (def, refs) => {
   if (refs.currentPath.toString() === refs.propertyPath?.toString()) {
     return parseDef(def.innerType._def, refs);
@@ -18153,7 +18153,7 @@ var parseOptionalDef = (def, refs) => {
   } : parseAnyDef(refs);
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/pipeline.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/pipeline.js
 var parsePipelineDef = (def, refs) => {
   if (refs.pipeStrategy === "input") {
     return parseDef(def.in._def, refs);
@@ -18173,12 +18173,12 @@ var parsePipelineDef = (def, refs) => {
   };
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/promise.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/promise.js
 function parsePromiseDef(def, refs) {
   return parseDef(def.type._def, refs);
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/set.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/set.js
 function parseSetDef(def, refs) {
   const items = parseDef(def.valueType._def, {
     ...refs,
@@ -18198,7 +18198,7 @@ function parseSetDef(def, refs) {
   return schema;
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/tuple.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/tuple.js
 function parseTupleDef(def, refs) {
   if (def.rest) {
     return {
@@ -18226,24 +18226,24 @@ function parseTupleDef(def, refs) {
   }
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/undefined.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/undefined.js
 function parseUndefinedDef(refs) {
   return {
     not: parseAnyDef(refs)
   };
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/unknown.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/unknown.js
 function parseUnknownDef(refs) {
   return parseAnyDef(refs);
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/readonly.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/readonly.js
 var parseReadonlyDef = (def, refs) => {
   return parseDef(def.innerType._def, refs);
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/selectParser.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/selectParser.js
 var selectParser = (def, typeName, refs) => {
   switch (typeName) {
     case ZodFirstPartyTypeKind.ZodString:
@@ -18319,7 +18319,7 @@ var selectParser = (def, typeName, refs) => {
   }
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parseDef.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parseDef.js
 function parseDef(def, refs, forceResolution = false) {
   const seenItem = refs.seen.get(def);
   if (refs.override) {
@@ -18375,7 +18375,7 @@ var addMeta = (def, refs, jsonSchema) => {
   return jsonSchema;
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/zodToJsonSchema.js
+// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/zodToJsonSchema.js
 var zodToJsonSchema = (schema, options) => {
   const refs = getRefs(options);
   let definitions = typeof options === "object" && options.definitions ? Object.entries(options.definitions).reduce((acc, [name2, schema2]) => ({
@@ -18437,7 +18437,7 @@ var zodToJsonSchema = (schema, options) => {
   return combined;
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-json-schema-compat.js
+// node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-json-schema-compat.js
 function mapMiniTarget(t) {
   if (!t)
     return "draft-7";
@@ -18479,7 +18479,7 @@ function parseWithCompat(schema, data) {
   return result.data;
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js
+// node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js
 var DEFAULT_REQUEST_TIMEOUT_MSEC = 6e4;
 var Protocol = class {
   constructor(_options) {
@@ -19433,7 +19433,7 @@ function mergeCapabilities(base, additional) {
   return result;
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/validation/ajv-provider.js
+// node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/validation/ajv-provider.js
 var import_ajv = __toESM(require_ajv(), 1);
 var import_ajv_formats = __toESM(require_dist(), 1);
 function createDefaultAjvInstance() {
@@ -19501,7 +19501,7 @@ var AjvJsonSchemaValidator = class {
   }
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/server.js
+// node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/server.js
 var ExperimentalServerTasks = class {
   constructor(_server) {
     this._server = _server;
@@ -19714,7 +19714,7 @@ var ExperimentalServerTasks = class {
   }
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/helpers.js
+// node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/helpers.js
 function assertToolsCallTaskCapability(requests, method, entityName) {
   if (!requests) {
     throw new Error(`${entityName} does not support task creation (required for ${method})`);
@@ -19749,7 +19749,7 @@ function assertClientRequestTaskCapability(requests, method, entityName) {
   }
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/index.js
+// node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/index.js
 var Server = class extends Protocol {
   /**
    * Initializes this server with the given name and version information.
@@ -20129,7 +20129,7 @@ var Server = class extends Protocol {
   }
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/completable.js
+// node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/completable.js
 var COMPLETABLE_SYMBOL = /* @__PURE__ */ Symbol.for("mcp.completable");
 function isCompletable(schema) {
   return !!schema && typeof schema === "object" && COMPLETABLE_SYMBOL in schema;
@@ -20143,7 +20143,7 @@ var McpZodTypeKind;
   McpZodTypeKind2["Completable"] = "McpCompletable";
 })(McpZodTypeKind || (McpZodTypeKind = {}));
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/toolNameValidation.js
+// node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/toolNameValidation.js
 var TOOL_NAME_REGEX = /^[A-Za-z0-9._-]{1,128}$/;
 function validateToolName(name) {
   const warnings = [];
@@ -20201,7 +20201,7 @@ function validateAndWarnToolName(name) {
   return result.isValid;
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/mcp-server.js
+// node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/mcp-server.js
 var ExperimentalMcpServerTasks = class {
   constructor(_mcpServer) {
     this._mcpServer = _mcpServer;
@@ -20216,7 +20216,7 @@ var ExperimentalMcpServerTasks = class {
   }
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/mcp.js
+// node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/mcp.js
 var McpServer = class {
   constructor(serverInfo, options) {
     this._registeredResources = {};
@@ -21008,10 +21008,10 @@ var EMPTY_COMPLETION_RESULT = {
   }
 };
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
+// node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 import process2 from "node:process";
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/stdio.js
+// node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/stdio.js
 var ReadBuffer = class {
   append(chunk) {
     this._buffer = this._buffer ? Buffer.concat([this._buffer, chunk]) : chunk;
@@ -21039,7 +21039,7 @@ function serializeMessage(message) {
   return JSON.stringify(message) + "\n";
 }
 
-// ../../../../../../tool/codex-kimi-bridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
+// node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 var StdioServerTransport = class {
   constructor(_stdin = process2.stdin, _stdout = process2.stdout) {
     this._stdin = _stdin;
@@ -21211,7 +21211,7 @@ var NodeGitInspector = class {
     const branchResult = await this.tryGit(cwd, ["rev-parse", "--abbrev-ref", "HEAD"], this.metadataMaxBuffer);
     const baseBranch = branchResult.ok ? branchResult.stdout.toString("utf8").trim() : void 0;
     const initialDirtyPaths = [];
-    const statusResult = await this.tryGit(cwd, ["status", "--porcelain=v1", "-z", "--untracked-files=all"], this.metadataMaxBuffer);
+    const statusResult = await this.tryGit(cwd, ["status", "--porcelain=v1", "-z", "--untracked-files=normal"], this.metadataMaxBuffer);
     if (statusResult.ok) {
       for (const entry of parseNulStatus(statusResult.stdout)) {
         initialDirtyPaths.push(entry.path);
@@ -21632,16 +21632,18 @@ function loadBridgeConfig(env = process.env) {
 
 // src/errors.ts
 var KimiApiError = class extends Error {
-  constructor(code, message, requestId, details) {
+  constructor(code, message, requestId, details, httpStatus) {
     super(message);
     this.code = code;
     this.requestId = requestId;
     this.details = details;
+    this.httpStatus = httpStatus;
     this.name = "KimiApiError";
   }
   code;
   requestId;
   details;
+  httpStatus;
 };
 var KimiNetworkError = class extends Error {
   constructor(message, cause) {
@@ -21650,6 +21652,16 @@ var KimiNetworkError = class extends Error {
     this.name = "KimiNetworkError";
   }
   cause;
+};
+var BridgeToolError = class extends Error {
+  constructor(code, message, details) {
+    super(message);
+    this.code = code;
+    this.details = details;
+    this.name = "BridgeToolError";
+  }
+  code;
+  details;
 };
 
 // src/kimi/http.ts
@@ -21716,12 +21728,12 @@ var KimiHttpClient = class {
       if (response.status === 401) {
         const requestId = isErrorEnvelope(parsed) ? parsed.request_id : void 0;
         const code = isErrorEnvelope(parsed) ? parsed.code : response.status;
-        throw new KimiApiError(code, FRIENDLY_AUTH_MESSAGE, requestId);
+        throw new KimiApiError(code, FRIENDLY_AUTH_MESSAGE, requestId, void 0, response.status);
       }
       if (isErrorEnvelope(parsed)) {
-        throw new KimiApiError(parsed.code, parsed.msg, parsed.request_id, parsed.details);
+        throw new KimiApiError(parsed.code, parsed.msg, parsed.request_id, parsed.details, response.status);
       }
-      throw new KimiApiError(response.status, `HTTP error ${response.status} ${response.statusText}`, void 0);
+      throw new KimiApiError(response.status, `HTTP error ${response.status} ${response.statusText}`, void 0, void 0, response.status);
     }
     const envelope = parsed;
     if (!envelope || typeof envelope.code !== "number") {
@@ -21731,7 +21743,7 @@ var KimiHttpClient = class {
       );
     }
     if (envelope.code !== 0) {
-      throw new KimiApiError(envelope.code, envelope.msg, envelope.request_id, envelope.details);
+      throw new KimiApiError(envelope.code, envelope.msg, envelope.request_id, envelope.details, response.status);
     }
     return envelope.data;
   }
@@ -21829,6 +21841,14 @@ var KimiClient = class {
   }
   abortSession(sessionId) {
     return this.http.post(`/sessions/${encodeURIComponent(sessionId)}:abort`);
+  }
+  listPrompts(sessionId) {
+    return this.http.get(`/sessions/${encodeURIComponent(sessionId)}/prompts`);
+  }
+  abortPrompt(sessionId, promptId) {
+    return this.http.post(
+      `/sessions/${encodeURIComponent(sessionId)}/prompts/${encodeURIComponent(promptId)}:abort`
+    );
   }
   getConfig() {
     return this.http.get("/config");
@@ -22041,6 +22061,49 @@ async function expandGitStatusEntries(input) {
 // src/tools.ts
 import { readdir, realpath } from "node:fs/promises";
 import path2 from "node:path";
+async function promptQueueUnsupported(error2, kimi, sessionId) {
+  if (!(error2 instanceof KimiApiError)) return false;
+  if (error2.code === 40401) {
+    await kimi.getSession(sessionId);
+    return true;
+  }
+  return error2.code === 404 || error2.code === 405 || error2.httpStatus === 404 || error2.httpStatus === 405;
+}
+function findPrompt(queue, promptId) {
+  if (queue.active?.prompt_id === promptId) return queue.active;
+  return queue.queued.find((prompt) => prompt.prompt_id === promptId);
+}
+async function sleep(ms) {
+  if (ms > 0) await new Promise((resolve2) => setTimeout(resolve2, ms));
+}
+async function assertSessionCanAcceptPrompt(kimi, sessionId, allowQueue) {
+  if (allowQueue) return;
+  let queueEvidence = "available";
+  try {
+    const queue = await kimi.listPrompts(sessionId);
+    if (queue.active || queue.queued.length > 0) {
+      throw new BridgeToolError(
+        "SESSION_BUSY",
+        "The Kimi session already has an active or queued prompt. Wait for it to settle, or pass allowQueue: true to enqueue deliberately.",
+        {
+          activePromptId: queue.active?.prompt_id,
+          queuedPromptIds: queue.queued.map((prompt) => prompt.prompt_id)
+        }
+      );
+    }
+  } catch (error2) {
+    if (!await promptQueueUnsupported(error2, kimi, sessionId)) throw error2;
+    queueEvidence = "unavailable";
+  }
+  const status = await kimi.getRuntimeStatus(sessionId);
+  if (status === "running" || status === "awaiting_approval" || status === "awaiting_question") {
+    throw new BridgeToolError(
+      "SESSION_BUSY",
+      "The Kimi session is still active. Wait for it to settle, or pass allowQueue: true to enqueue deliberately.",
+      { status, queueEvidence }
+    );
+  }
+}
 function withPreflight(preflight, fn) {
   return async (...args) => {
     await preflight.ensureReady();
@@ -22057,12 +22120,16 @@ async function resolveModel(kimi, inputModel, config2) {
 function buildWebUrl(serverUrl, sessionId) {
   return `${serverUrl}/sessions/${encodeURIComponent(sessionId)}`;
 }
+var MAX_SESSION_DIRTY_PATHS = 1e3;
 function baselineMetadata(baseline) {
+  const truncated = baseline.initialDirtyPaths.length > MAX_SESSION_DIRTY_PATHS;
+  const initialDirtyPaths = truncated ? baseline.initialDirtyPaths.slice(0, MAX_SESSION_DIRTY_PATHS) : baseline.initialDirtyPaths;
   const codexKimiBridge = {
     schema_version: 1,
     base_commit: baseline.baseCommit,
     ...baseline.baseBranch ? { base_branch: baseline.baseBranch } : {},
-    initial_dirty_paths: baseline.initialDirtyPaths
+    initial_dirty_paths: initialDirtyPaths,
+    ...truncated ? { initial_dirty_paths_truncated: true } : {}
   };
   if (baseline.worktrees && baseline.worktrees.length > 0) {
     codexKimiBridge.worktrees = baseline.worktrees.map((wt) => ({
@@ -22313,6 +22380,28 @@ var defaultFileLister = {
 function createToolHandlers(deps) {
   const gitInspector = deps.gitInspector ?? new NodeGitInspector();
   const baselineStore = deps.baselineStore ?? new InMemoryBaselineStore();
+  const submissionsInFlight = /* @__PURE__ */ new Map();
+  async function submitPromptSafely(sessionId, content, input, checkExisting = true) {
+    if (!input.allowQueue && submissionsInFlight.has(sessionId)) {
+      throw new BridgeToolError("SESSION_BUSY", "Another submission to this session is in progress. Wait before submitting another task.", { sessionId, submissionInFlight: true });
+    }
+    submissionsInFlight.set(sessionId, (submissionsInFlight.get(sessionId) ?? 0) + 1);
+    try {
+      if (checkExisting) await assertSessionCanAcceptPrompt(deps.kimi, sessionId, input.allowQueue);
+      return await deps.kimi.submitPrompt(sessionId, {
+        content,
+        model: await resolveModel(deps.kimi, input.model, deps.config),
+        thinking: input.thinking ?? deps.config.defaultThinking,
+        permissionMode: deps.config.defaultPermissionMode,
+        planMode: false,
+        swarmMode: input.swarmMode
+      });
+    } finally {
+      const remaining = (submissionsInFlight.get(sessionId) ?? 1) - 1;
+      if (remaining === 0) submissionsInFlight.delete(sessionId);
+      else submissionsInFlight.set(sessionId, remaining);
+    }
+  }
   function buildReviewPackage(sessionId, handoff) {
     const diffsWithContent = handoff.diffs.filter((d) => d.diff.length > 0).length;
     const committed = handoff.committedChanges;
@@ -22391,6 +22480,28 @@ function createToolHandlers(deps) {
       ...baselineFields
     };
   }
+  async function waitForDelegatedPrompt(delegated, timeoutMs = deps.config.requestTimeoutMs) {
+    const deadline = Date.now() + timeoutMs;
+    const promptWait = await handlers.kimi_wait_for_prompt({
+      sessionId: delegated.sessionId,
+      promptId: delegated.promptId,
+      timeoutMs
+    });
+    let wait;
+    if (promptWait.sessionStatus === "failed" || promptWait.sessionStatus === "aborted") {
+      wait = { status: promptWait.sessionStatus };
+    } else if (promptWait.status === "timeout") {
+      wait = { status: "timeout" };
+    } else if (promptWait.status === "blocked") {
+      wait = promptWait.sessionStatus === "awaiting_approval" || promptWait.sessionStatus === "awaiting_question" ? await handlers.kimi_wait_until_idle({ sessionId: delegated.sessionId, timeoutMs: 0 }) : { status: "running" };
+    } else {
+      wait = await handlers.kimi_wait_until_idle({
+        sessionId: delegated.sessionId,
+        timeoutMs: Math.max(0, deadline - Date.now())
+      });
+    }
+    return { ...await buildDelegateAndWaitResult(delegated, wait), promptWait };
+  }
   const handlers = {
     async kimi_bridge_status() {
       const status = await deps.preflight.getStatus();
@@ -22458,14 +22569,7 @@ function createToolHandlers(deps) {
         plan: input.plan,
         swarmSuggestions: input.swarmMode ? input.plan : void 0
       });
-      const result = await deps.kimi.submitPrompt(session.id, {
-        content: prompt,
-        model: await resolveModel(deps.kimi, input.model, deps.config),
-        thinking: input.thinking ?? deps.config.defaultThinking,
-        permissionMode: deps.config.defaultPermissionMode,
-        planMode: false,
-        swarmMode: input.swarmMode
-      });
+      const result = await submitPromptSafely(session.id, prompt, input, input.sessionId !== void 0);
       return {
         sessionId: session.id,
         promptId: result.prompt_id,
@@ -22517,22 +22621,20 @@ function createToolHandlers(deps) {
             };
           }
           if (match.status === "idle") {
-            const handoff = await handlers.kimi_get_handoff({ sessionId: match.sessionId });
-            const reviewPackage = buildReviewPackage(match.sessionId, handoff);
-            return {
+            const wait = await handlers.kimi_wait_until_idle({ sessionId: match.sessionId, timeoutMs: 0 });
+            const result = await buildDelegateAndWaitResult({
               sessionId: match.sessionId,
               promptId: "",
-              submitStatus: "reused",
-              webUrl: match.webUrl,
-              wait: { status: "idle" },
-              handoff,
-              changedFiles: handoff.changedFiles,
-              reviewPackage,
+              status: "reused",
+              webUrl: match.webUrl
+            }, wait);
+            return {
+              ...result,
               dedupe: { ...baseDedupe, reason: "idle" }
             };
           }
           if (match.status === "awaiting_approval" || match.status === "awaiting_question") {
-            const wait3 = await handlers.kimi_wait_until_idle({
+            const wait = await handlers.kimi_wait_until_idle({
               sessionId: match.sessionId,
               timeoutMs: 0
             });
@@ -22541,17 +22643,13 @@ function createToolHandlers(deps) {
               promptId: "",
               submitStatus: "reused",
               webUrl: match.webUrl,
-              wait: wait3,
+              wait,
               dedupe: { ...baseDedupe, reason: match.status }
             };
           }
         }
         const delegated2 = await handlers.kimi_delegate_task(input);
-        const wait2 = await handlers.kimi_wait_until_idle({
-          sessionId: delegated2.sessionId,
-          timeoutMs: input.timeoutMs
-        });
-        const baseResult = await buildDelegateAndWaitResult(delegated2, wait2);
+        const baseResult = await waitForDelegatedPrompt(delegated2, input.timeoutMs);
         let reason;
         if (match) {
           reason = bridgeSupportsReuse ? "status_not_reusable" : "status_not_supported";
@@ -22574,17 +22672,24 @@ function createToolHandlers(deps) {
         };
       }
       const delegated = await handlers.kimi_delegate_task(input);
-      const wait = await handlers.kimi_wait_until_idle({
-        sessionId: delegated.sessionId,
-        timeoutMs: input.timeoutMs
-      });
-      return buildDelegateAndWaitResult(delegated, wait);
+      return waitForDelegatedPrompt(delegated, input.timeoutMs);
     },
     async kimi_wait_until_idle(input) {
       const result = await waitUntilIdle({
         sessionId: input.sessionId,
         timeoutMs: input.timeoutMs ?? deps.config.requestTimeoutMs,
-        pollStatus: async () => ({ status: await deps.kimi.getRuntimeStatus(input.sessionId) })
+        pollStatus: async () => {
+          const status = await deps.kimi.getRuntimeStatus(input.sessionId);
+          if (status !== "running" && status !== "awaiting_approval" && status !== "awaiting_question") {
+            try {
+              const queue = await deps.kimi.listPrompts(input.sessionId);
+              if (queue.active || queue.queued.length > 0) return { status: "running" };
+            } catch (error2) {
+              if (!await promptQueueUnsupported(error2, deps.kimi, input.sessionId)) throw error2;
+            }
+          }
+          return { status };
+        }
       });
       if (result.status === "awaiting_approval") {
         return {
@@ -22599,6 +22704,55 @@ function createToolHandlers(deps) {
         };
       }
       return result;
+    },
+    async kimi_wait_for_prompt(input) {
+      const timeoutMs = input.timeoutMs ?? deps.config.requestTimeoutMs;
+      const deadline = Date.now() + timeoutMs;
+      do {
+        try {
+          const queue = await deps.kimi.listPrompts(input.sessionId);
+          const prompt = findPrompt(queue, input.promptId);
+          const sessionStatus = await deps.kimi.getRuntimeStatus(input.sessionId);
+          if (!prompt) {
+            return {
+              sessionId: input.sessionId,
+              promptId: input.promptId,
+              status: "settled",
+              sessionStatus,
+              queueEvidence: "available"
+            };
+          }
+          if (prompt.status === "blocked" || sessionStatus === "awaiting_approval" || sessionStatus === "awaiting_question") {
+            return {
+              sessionId: input.sessionId,
+              promptId: input.promptId,
+              status: "blocked",
+              sessionStatus,
+              queueEvidence: "available"
+            };
+          }
+        } catch (error2) {
+          if (!await promptQueueUnsupported(error2, deps.kimi, input.sessionId)) throw error2;
+          const wait = await handlers.kimi_wait_until_idle({ sessionId: input.sessionId, timeoutMs: Math.max(0, deadline - Date.now()) });
+          return {
+            sessionId: input.sessionId,
+            promptId: input.promptId,
+            status: wait.status === "timeout" || wait.status === "running" ? "timeout" : wait.status === "awaiting_approval" || wait.status === "awaiting_question" ? "blocked" : "settled",
+            sessionStatus: wait.status === "timeout" ? "running" : wait.status,
+            queueEvidence: "unavailable"
+          };
+        }
+        const remaining = deadline - Date.now();
+        if (remaining <= 0) break;
+        await sleep(Math.min(500, remaining));
+      } while (Date.now() <= deadline);
+      return {
+        sessionId: input.sessionId,
+        promptId: input.promptId,
+        status: "timeout",
+        sessionStatus: await deps.kimi.getRuntimeStatus(input.sessionId),
+        queueEvidence: "available"
+      };
     },
     async kimi_get_handoff(input) {
       const [messages, gitStatus, session] = await Promise.all([
@@ -22674,22 +22828,124 @@ function createToolHandlers(deps) {
         plan: input.plan ?? [],
         swarmSuggestions: input.swarmMode ? input.plan : void 0
       });
-      const result = await deps.kimi.submitPrompt(input.sessionId, {
-        content: prompt,
-        model: await resolveModel(deps.kimi, input.model, deps.config),
-        thinking: input.thinking ?? deps.config.defaultThinking,
-        permissionMode: deps.config.defaultPermissionMode,
-        planMode: false,
-        swarmMode: input.swarmMode
-      });
-      return { sessionId: input.sessionId, promptId: result.prompt_id, status: result.status, webUrl: buildWebUrl(deps.config.serverUrl, input.sessionId) };
+      const result = await submitPromptSafely(input.sessionId, prompt, input);
+      return {
+        sessionId: input.sessionId,
+        promptId: result.prompt_id,
+        status: result.status,
+        webUrl: buildWebUrl(deps.config.serverUrl, input.sessionId),
+        queueAllowed: input.allowQueue === true
+      };
     },
     async kimi_get_diff(input) {
       return deps.kimi.getFileDiff(input.sessionId, input.path);
     },
     async kimi_abort(input) {
       await deps.kimi.abortSession(input.sessionId);
-      return { sessionId: input.sessionId, aborted: true };
+      return {
+        sessionId: input.sessionId,
+        aborted: true,
+        abortRequested: true,
+        terminationConfirmed: false,
+        scope: "active_turn"
+      };
+    },
+    async kimi_abort_and_wait(input) {
+      let queueEvidence = "available";
+      let abortRequested = false;
+      let promptId = input.promptId;
+      let before;
+      try {
+        before = await deps.kimi.listPrompts(input.sessionId);
+      } catch (error2) {
+        if (!await promptQueueUnsupported(error2, deps.kimi, input.sessionId)) throw error2;
+        if (input.promptId) {
+          throw new BridgeToolError("PROMPT_ABORT_UNAVAILABLE", "This server cannot verify a prompt-specific abort. No abort was sent.", { promptId: input.promptId, queueEvidence: "unavailable" });
+        }
+        queueEvidence = "unavailable";
+      }
+      if (before) {
+        promptId ??= before.active?.prompt_id;
+        if (promptId && before.active?.prompt_id === promptId) {
+          await deps.kimi.abortPrompt(input.sessionId, promptId);
+          abortRequested = true;
+        } else if (promptId && before.queued.some((prompt) => prompt.prompt_id === promptId)) {
+          throw new BridgeToolError(
+            "QUEUED_PROMPT_NOT_CANCELLABLE",
+            "Kimi exposes abort for the running prompt but does not expose cancellation for an individual queued prompt.",
+            { promptId, queuedPromptIds: before.queued.map((prompt) => prompt.prompt_id) }
+          );
+        } else if (promptId) {
+          throw new BridgeToolError("PROMPT_NOT_PENDING", "The requested prompt is not active or queued.", { promptId });
+        }
+      } else {
+        await deps.kimi.abortSession(input.sessionId);
+        abortRequested = true;
+      }
+      const timeoutMs = input.timeoutMs ?? deps.config.requestTimeoutMs;
+      const deadline = Date.now() + timeoutMs;
+      do {
+        if (queueEvidence === "available") {
+          const queue = await deps.kimi.listPrompts(input.sessionId);
+          if (!queue.active && queue.queued.length === 0) {
+            const finalStatus = await deps.kimi.getRuntimeStatus(input.sessionId);
+            if (finalStatus !== "running" && finalStatus !== "awaiting_approval" && finalStatus !== "awaiting_question") {
+              return {
+                sessionId: input.sessionId,
+                abortRequested,
+                terminationConfirmed: true,
+                finalStatus,
+                activePromptId: void 0,
+                queuedPromptIds: [],
+                queueEvidence
+              };
+            }
+          }
+          if (!queue.active && queue.queued.length > 0) {
+            return {
+              sessionId: input.sessionId,
+              abortRequested,
+              terminationConfirmed: false,
+              finalStatus: "queued_prompts_remain",
+              activePromptId: void 0,
+              queuedPromptIds: queue.queued.map((prompt) => prompt.prompt_id),
+              queueEvidence
+            };
+          }
+        } else {
+          const finalStatus = await deps.kimi.getRuntimeStatus(input.sessionId);
+          if (finalStatus !== "running") {
+            return {
+              sessionId: input.sessionId,
+              abortRequested,
+              terminationConfirmed: false,
+              finalStatus,
+              activePromptId: void 0,
+              queuedPromptIds: [],
+              queueEvidence
+            };
+          }
+        }
+        const remaining = deadline - Date.now();
+        if (remaining <= 0) break;
+        await sleep(Math.min(500, remaining));
+      } while (Date.now() <= deadline);
+      let activePromptId;
+      let queuedPromptIds = [];
+      if (queueEvidence === "available") {
+        const queue = await deps.kimi.listPrompts(input.sessionId);
+        activePromptId = queue.active?.prompt_id;
+        queuedPromptIds = queue.queued.map((prompt) => prompt.prompt_id);
+      }
+      return {
+        sessionId: input.sessionId,
+        abortRequested,
+        terminationConfirmed: false,
+        finalStatus: "timeout",
+        activePromptId,
+        queuedPromptIds,
+        queueEvidence
+      };
     }
   };
   return {
@@ -22697,11 +22953,13 @@ function createToolHandlers(deps) {
     kimi_delegate_task: withPreflight(deps.preflight, handlers.kimi_delegate_task),
     kimi_delegate_and_wait: withPreflight(deps.preflight, handlers.kimi_delegate_and_wait),
     kimi_wait_until_idle: withPreflight(deps.preflight, handlers.kimi_wait_until_idle),
+    kimi_wait_for_prompt: withPreflight(deps.preflight, handlers.kimi_wait_for_prompt),
     kimi_get_handoff: withPreflight(deps.preflight, handlers.kimi_get_handoff),
     kimi_review_package: withPreflight(deps.preflight, handlers.kimi_review_package),
     kimi_continue_task: withPreflight(deps.preflight, handlers.kimi_continue_task),
     kimi_get_diff: withPreflight(deps.preflight, handlers.kimi_get_diff),
     kimi_abort: withPreflight(deps.preflight, handlers.kimi_abort),
+    kimi_abort_and_wait: withPreflight(deps.preflight, handlers.kimi_abort_and_wait),
     kimi_recent_sessions: withPreflight(deps.preflight, handlers.kimi_recent_sessions),
     kimi_find_recent_session: withPreflight(deps.preflight, handlers.kimi_find_recent_session)
   };
@@ -22990,6 +23248,12 @@ async function runToolHandler(handler) {
     const result = await handler();
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   } catch (error2) {
+    if (error2 instanceof BridgeToolError) {
+      return {
+        content: [{ type: "text", text: JSON.stringify({ error: error2.message, code: error2.code, details: error2.details }, null, 2) }],
+        isError: true
+      };
+    }
     if (error2 instanceof KimiApiError) {
       return {
         content: [
@@ -23056,7 +23320,8 @@ async function main() {
       swarmMode: external_exports.boolean().optional(),
       sessionId: external_exports.string().optional(),
       model: external_exports.string().optional(),
-      thinking: external_exports.string().optional()
+      thinking: external_exports.string().optional(),
+      allowQueue: external_exports.boolean().optional().describe("Explicitly allow adding a queued prompt to a busy existing session. Default: refuse busy sessions.")
     },
     async (input) => runToolHandler(() => handlers.kimi_delegate_task(input))
   );
@@ -23072,6 +23337,7 @@ async function main() {
       sessionId: external_exports.string().optional(),
       model: external_exports.string().optional(),
       thinking: external_exports.string().optional(),
+      allowQueue: external_exports.boolean().optional().describe("Explicitly allow adding a queued prompt to a busy existing session. Default: refuse busy sessions."),
       dedupe: external_exports.object({
         titleContains: external_exports.string(),
         status: external_exports.string().optional(),
@@ -23116,7 +23382,8 @@ async function main() {
       plan: external_exports.array(external_exports.string()).optional(),
       swarmMode: external_exports.boolean().optional(),
       model: external_exports.string().optional(),
-      thinking: external_exports.string().optional()
+      thinking: external_exports.string().optional(),
+      allowQueue: external_exports.boolean().optional().describe("Explicitly enqueue a separate follow-up while busy. Does not replace or stop the active task.")
     },
     async (input) => runToolHandler(() => handlers.kimi_continue_task(input))
   );
@@ -23130,10 +23397,31 @@ async function main() {
   );
   server.tool(
     "kimi_abort",
+    "Request cancellation of the current main-agent turn only. Does not clear queued prompts or confirm termination; use kimi_abort_and_wait before transferring ownership.",
     {
       sessionId: external_exports.string()
     },
     async (input) => runToolHandler(() => handlers.kimi_abort(input))
+  );
+  server.tool(
+    "kimi_wait_for_prompt",
+    "Observe a specific prompt until it leaves the pending queue, blocks, or times out. Settled is not proof of successful implementation. Does not cancel work on timeout.",
+    {
+      sessionId: external_exports.string(),
+      promptId: external_exports.string().min(1).describe("The promptId returned by delegation or continuation."),
+      timeoutMs: external_exports.number().nonnegative().optional()
+    },
+    async (input) => runToolHandler(() => handlers.kimi_wait_for_prompt(input))
+  );
+  server.tool(
+    "kimi_abort_and_wait",
+    "Abort the active prompt and observe runtime plus queue. Only terminationConfirmed=true confirms no active/queued work at the observation point. Cannot cancel individual queued prompts.",
+    {
+      sessionId: external_exports.string(),
+      promptId: external_exports.string().min(1).optional().describe("Optional active prompt to abort; queued or unknown IDs are refused without aborting another turn."),
+      timeoutMs: external_exports.number().nonnegative().optional()
+    },
+    async (input) => runToolHandler(() => handlers.kimi_abort_and_wait(input))
   );
   server.tool(
     "kimi_bridge_status",

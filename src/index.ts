@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import { createDefaultBaselineStore } from './baseline-store.js';
 import { loadBridgeConfig } from './config.js';
-import { KimiApiError, KimiNetworkError } from './errors.js';
+import { BridgeToolError, KimiApiError, KimiNetworkError } from './errors.js';
 import { KimiHttpClient } from './kimi/http.js';
 import { KimiClient } from './kimi/client.js';
 import { createToolHandlers } from './tools.js';
@@ -26,6 +26,12 @@ export async function runToolHandler(handler: () => Promise<unknown>): Promise<{
     const result = await handler();
     return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
   } catch (error) {
+    if (error instanceof BridgeToolError) {
+      return {
+        content: [{ type: 'text', text: JSON.stringify({ error: error.message, code: error.code, details: error.details }, null, 2) }],
+        isError: true,
+      };
+    }
     if (error instanceof KimiApiError) {
       return {
         content: [
@@ -95,6 +101,7 @@ export async function main(): Promise<void> {
       sessionId: z.string().optional(),
       model: z.string().optional(),
       thinking: z.string().optional(),
+      allowQueue: z.boolean().optional().describe('Explicitly allow adding a queued prompt to a busy existing session. Default: refuse busy sessions.'),
     },
     async (input) => runToolHandler(() => handlers.kimi_delegate_task(input)),
   );
@@ -111,6 +118,7 @@ export async function main(): Promise<void> {
       sessionId: z.string().optional(),
       model: z.string().optional(),
       thinking: z.string().optional(),
+      allowQueue: z.boolean().optional().describe('Explicitly allow adding a queued prompt to a busy existing session. Default: refuse busy sessions.'),
       dedupe: z.object({
         titleContains: z.string(),
         status: z.string().optional(),
@@ -160,6 +168,7 @@ export async function main(): Promise<void> {
       swarmMode: z.boolean().optional(),
       model: z.string().optional(),
       thinking: z.string().optional(),
+      allowQueue: z.boolean().optional().describe('Explicitly enqueue a separate follow-up while busy. Does not replace or stop the active task.'),
     },
     async (input) => runToolHandler(() => handlers.kimi_continue_task(input)),
   );
@@ -175,10 +184,33 @@ export async function main(): Promise<void> {
 
   server.tool(
     'kimi_abort',
+    'Request cancellation of the current main-agent turn only. Does not clear queued prompts or confirm termination; use kimi_abort_and_wait before transferring ownership.',
     {
       sessionId: z.string(),
     },
     async (input) => runToolHandler(() => handlers.kimi_abort(input)),
+  );
+
+  server.tool(
+    'kimi_wait_for_prompt',
+    'Observe a specific prompt until it leaves the pending queue, blocks, or times out. Settled is not proof of successful implementation. Does not cancel work on timeout.',
+    {
+      sessionId: z.string(),
+      promptId: z.string().min(1).describe('The promptId returned by delegation or continuation.'),
+      timeoutMs: z.number().nonnegative().optional(),
+    },
+    async (input) => runToolHandler(() => handlers.kimi_wait_for_prompt(input)),
+  );
+
+  server.tool(
+    'kimi_abort_and_wait',
+    'Abort the active prompt and observe runtime plus queue. Only terminationConfirmed=true confirms no active/queued work at the observation point. Cannot cancel individual queued prompts.',
+    {
+      sessionId: z.string(),
+      promptId: z.string().min(1).optional().describe('Optional active prompt to abort; queued or unknown IDs are refused without aborting another turn.'),
+      timeoutMs: z.number().nonnegative().optional(),
+    },
+    async (input) => runToolHandler(() => handlers.kimi_abort_and_wait(input)),
   );
 
   server.tool(

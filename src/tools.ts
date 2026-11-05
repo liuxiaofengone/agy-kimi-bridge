@@ -11,6 +11,8 @@ import { readdir, realpath } from 'node:fs/promises';
 import path from 'node:path';
 import { NodeGitInspector, type GitInspector, type GitBaseline, OBJECT_ID_RE } from './git.js';
 import { InMemoryBaselineStore, type BaselineStore } from './baseline-store.js';
+import { BridgeToolError, KimiApiError } from './errors.js';
+import type { PromptQueueSnapshot } from './kimi/types.js';
 
 export interface FileLister {
   listFiles(baseDir: string, relativeDir: string): Promise<string[]>;
@@ -34,6 +36,7 @@ export interface DelegateTaskInput {
   sessionId?: string;
   model?: string;
   thinking?: string;
+  allowQueue?: boolean;
 }
 
 export interface DelegateAndWaitInput extends DelegateTaskInput {
@@ -57,6 +60,20 @@ export interface WaitUntilIdleInput {
   timeoutMs?: number;
 }
 
+export interface WaitForPromptInput {
+  sessionId: string;
+  promptId: string;
+  timeoutMs?: number;
+}
+
+export type WaitForPromptResult = {
+  sessionId: string;
+  promptId: string;
+  status: 'settled' | 'timeout' | 'blocked';
+  sessionStatus: BridgeRuntimeStatus;
+  queueEvidence: 'available' | 'unavailable';
+};
+
 export interface GetHandoffInput {
   sessionId: string;
 }
@@ -73,6 +90,7 @@ export interface ContinueTaskInput {
   swarmMode?: boolean;
   model?: string;
   thinking?: string;
+  allowQueue?: boolean;
 }
 
 export interface GetDiffInput {
@@ -82,6 +100,21 @@ export interface GetDiffInput {
 
 export interface AbortInput {
   sessionId: string;
+}
+
+export interface AbortAndWaitInput extends AbortInput {
+  promptId?: string;
+  timeoutMs?: number;
+}
+
+export interface AbortAndWaitResult {
+  sessionId: string;
+  abortRequested: boolean;
+  terminationConfirmed: boolean;
+  finalStatus: BridgeRuntimeStatus | 'queued_prompts_remain' | 'timeout';
+  activePromptId?: string;
+  queuedPromptIds: string[];
+  queueEvidence: 'available' | 'unavailable';
 }
 
 export interface RecentSessionsInput {
@@ -120,6 +153,7 @@ export interface DelegateAndWaitResult {
   submitStatus: string;
   webUrl: string;
   wait: WaitUntilIdleResult;
+  promptWait?: WaitForPromptResult;
   handoff?: KimiHandoff;
   changedFiles?: string[];
   reviewPackage?: ReviewPackageResult;
@@ -181,14 +215,70 @@ export interface ToolHandlers {
   kimi_delegate_task: (input: DelegateTaskInput) => Promise<{ sessionId: string; promptId: string; status: string; webUrl: string; baselineStored?: boolean; baselineStoreError?: string }>;
   kimi_delegate_and_wait: (input: DelegateAndWaitInput) => Promise<DelegateAndWaitResult>;
   kimi_wait_until_idle: (input: WaitUntilIdleInput) => Promise<WaitUntilIdleResult>;
+  kimi_wait_for_prompt: (input: WaitForPromptInput) => Promise<WaitForPromptResult>;
   kimi_get_handoff: (input: GetHandoffInput) => Promise<KimiHandoff>;
   kimi_review_package: (input: ReviewPackageInput) => Promise<ReviewPackageResult>;
-  kimi_continue_task: (input: ContinueTaskInput) => Promise<{ sessionId: string; promptId: string; status: string; webUrl: string }>;
+  kimi_continue_task: (input: ContinueTaskInput) => Promise<{ sessionId: string; promptId: string; status: string; webUrl: string; queueAllowed: boolean }>;
   kimi_get_diff: (input: GetDiffInput) => Promise<{ path: string; diff: string }>;
-  kimi_abort: (input: AbortInput) => Promise<{ sessionId: string; aborted: true }>;
+  kimi_abort: (input: AbortInput) => Promise<{ sessionId: string; aborted: true; abortRequested: true; terminationConfirmed: false; scope: 'active_turn' }>;
+  kimi_abort_and_wait: (input: AbortAndWaitInput) => Promise<AbortAndWaitResult>;
   kimi_bridge_status: () => Promise<BridgeStatus>;
   kimi_recent_sessions: (input: RecentSessionsInput) => Promise<RecentSessionsResult>;
   kimi_find_recent_session: (input: FindRecentSessionInput) => Promise<FindRecentSessionResult>;
+}
+
+async function promptQueueUnsupported(error: unknown, kimi: KimiClient, sessionId: string): Promise<boolean> {
+  if (!(error instanceof KimiApiError)) return false;
+  if (error.code === 40401) {
+    // Some legacy servers use the same business code for an unknown route and
+    // a missing session. Verify the session exists before treating it as a
+    // capability gap; a genuinely missing session still propagates its error.
+    await kimi.getSession(sessionId);
+    return true;
+  }
+  return error.code === 404 || error.code === 405 || error.httpStatus === 404 || error.httpStatus === 405;
+}
+
+function findPrompt(queue: PromptQueueSnapshot, promptId: string) {
+  if (queue.active?.prompt_id === promptId) return queue.active;
+  return queue.queued.find((prompt) => prompt.prompt_id === promptId);
+}
+
+async function sleep(ms: number): Promise<void> {
+  if (ms > 0) await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function assertSessionCanAcceptPrompt(
+  kimi: KimiClient,
+  sessionId: string,
+  allowQueue: boolean | undefined,
+): Promise<void> {
+  if (allowQueue) return;
+  let queueEvidence: 'available' | 'unavailable' = 'available';
+  try {
+    const queue = await kimi.listPrompts(sessionId);
+    if (queue.active || queue.queued.length > 0) {
+      throw new BridgeToolError(
+        'SESSION_BUSY',
+        'The Kimi session already has an active or queued prompt. Wait for it to settle, or pass allowQueue: true to enqueue deliberately.',
+        {
+          activePromptId: queue.active?.prompt_id,
+          queuedPromptIds: queue.queued.map((prompt) => prompt.prompt_id),
+        },
+      );
+    }
+  } catch (error) {
+    if (!await promptQueueUnsupported(error, kimi, sessionId)) throw error;
+    queueEvidence = 'unavailable';
+  }
+  const status = await kimi.getRuntimeStatus(sessionId);
+  if (status === 'running' || status === 'awaiting_approval' || status === 'awaiting_question') {
+    throw new BridgeToolError(
+      'SESSION_BUSY',
+      'The Kimi session is still active. Wait for it to settle, or pass allowQueue: true to enqueue deliberately.',
+      { status, queueEvidence },
+    );
+  }
 }
 
 function withPreflight<T extends unknown[], R>(
@@ -217,12 +307,19 @@ function buildWebUrl(serverUrl: string, sessionId: string): string {
   return `${serverUrl}/sessions/${encodeURIComponent(sessionId)}`;
 }
 
+export const MAX_SESSION_DIRTY_PATHS = 1000;
+
 function baselineMetadata(baseline: GitBaseline): Record<string, unknown> {
+  const truncated = baseline.initialDirtyPaths.length > MAX_SESSION_DIRTY_PATHS;
+  const initialDirtyPaths = truncated
+    ? baseline.initialDirtyPaths.slice(0, MAX_SESSION_DIRTY_PATHS)
+    : baseline.initialDirtyPaths;
   const codexKimiBridge: Record<string, unknown> = {
     schema_version: 1,
     base_commit: baseline.baseCommit,
     ...(baseline.baseBranch ? { base_branch: baseline.baseBranch } : {}),
-    initial_dirty_paths: baseline.initialDirtyPaths,
+    initial_dirty_paths: initialDirtyPaths,
+    ...(truncated ? { initial_dirty_paths_truncated: true } : {}),
   };
   if (baseline.worktrees && baseline.worktrees.length > 0) {
     codexKimiBridge.worktrees = baseline.worktrees.map((wt) => ({
@@ -530,6 +627,34 @@ const defaultFileLister: FileLister = {
 export function createToolHandlers(deps: ToolDeps): ToolHandlers {
   const gitInspector = deps.gitInspector ?? new NodeGitInspector();
   const baselineStore = deps.baselineStore ?? new InMemoryBaselineStore();
+  const submissionsInFlight = new Map<string, number>();
+
+  async function submitPromptSafely(
+    sessionId: string,
+    content: string,
+    input: Pick<DelegateTaskInput, 'model' | 'thinking' | 'swarmMode' | 'allowQueue'>,
+    checkExisting = true,
+  ) {
+    if (!input.allowQueue && submissionsInFlight.has(sessionId)) {
+      throw new BridgeToolError('SESSION_BUSY', 'Another submission to this session is in progress. Wait before submitting another task.', { sessionId, submissionInFlight: true });
+    }
+    submissionsInFlight.set(sessionId, (submissionsInFlight.get(sessionId) ?? 0) + 1);
+    try {
+      if (checkExisting) await assertSessionCanAcceptPrompt(deps.kimi, sessionId, input.allowQueue);
+      return await deps.kimi.submitPrompt(sessionId, {
+        content,
+        model: await resolveModel(deps.kimi, input.model, deps.config),
+        thinking: input.thinking ?? deps.config.defaultThinking,
+        permissionMode: deps.config.defaultPermissionMode,
+        planMode: false,
+        swarmMode: input.swarmMode,
+      });
+    } finally {
+      const remaining = (submissionsInFlight.get(sessionId) ?? 1) - 1;
+      if (remaining === 0) submissionsInFlight.delete(sessionId);
+      else submissionsInFlight.set(sessionId, remaining);
+    }
+  }
 
   function buildReviewPackage(sessionId: string, handoff: KimiHandoff): ReviewPackageResult {
     const diffsWithContent = handoff.diffs.filter((d) => d.diff.length > 0).length;
@@ -614,6 +739,38 @@ export function createToolHandlers(deps: ToolDeps): ToolHandlers {
     };
   }
 
+  async function waitForDelegatedPrompt(
+    delegated: Awaited<ReturnType<ToolHandlers['kimi_delegate_task']>>,
+    timeoutMs = deps.config.requestTimeoutMs,
+  ): Promise<DelegateAndWaitResult> {
+    const deadline = Date.now() + timeoutMs;
+    const promptWait = await handlers.kimi_wait_for_prompt({
+      sessionId: delegated.sessionId,
+      promptId: delegated.promptId,
+      timeoutMs,
+    });
+    let wait: WaitUntilIdleResult;
+    if (promptWait.sessionStatus === 'failed' || promptWait.sessionStatus === 'aborted') {
+      // Never let a later turn's idle overwrite an already observed failure.
+      wait = { status: promptWait.sessionStatus };
+    } else if (promptWait.status === 'timeout') {
+      wait = { status: 'timeout' };
+    } else if (promptWait.status === 'blocked') {
+      // Preserve pending interactions without ever treating an unclassified block as idle.
+      wait = promptWait.sessionStatus === 'awaiting_approval' || promptWait.sessionStatus === 'awaiting_question'
+        ? await handlers.kimi_wait_until_idle({ sessionId: delegated.sessionId, timeoutMs: 0 })
+        : { status: 'running' };
+    } else {
+      // A prompt leaving the queue is settled, not proof of success. Require the
+      // whole session (including other queued/background work) to settle too.
+      wait = await handlers.kimi_wait_until_idle({
+        sessionId: delegated.sessionId,
+        timeoutMs: Math.max(0, deadline - Date.now()),
+      });
+    }
+    return { ...await buildDelegateAndWaitResult(delegated, wait), promptWait };
+  }
+
   const handlers: ToolHandlers = {
     async kimi_bridge_status() {
       const status = await deps.preflight.getStatus();
@@ -686,14 +843,7 @@ export function createToolHandlers(deps: ToolDeps): ToolHandlers {
         plan: input.plan,
         swarmSuggestions: input.swarmMode ? input.plan : undefined,
       });
-      const result = await deps.kimi.submitPrompt(session.id, {
-        content: prompt,
-        model: await resolveModel(deps.kimi, input.model, deps.config),
-        thinking: input.thinking ?? deps.config.defaultThinking,
-        permissionMode: deps.config.defaultPermissionMode,
-        planMode: false,
-        swarmMode: input.swarmMode,
-      });
+      const result = await submitPromptSafely(session.id, prompt, input, input.sessionId !== undefined);
       return {
         sessionId: session.id,
         promptId: result.prompt_id,
@@ -753,17 +903,12 @@ export function createToolHandlers(deps: ToolDeps): ToolHandlers {
           }
 
           if (match.status === 'idle') {
-            const handoff = await handlers.kimi_get_handoff({ sessionId: match.sessionId });
-            const reviewPackage = buildReviewPackage(match.sessionId, handoff);
+            const wait = await handlers.kimi_wait_until_idle({ sessionId: match.sessionId, timeoutMs: 0 });
+            const result = await buildDelegateAndWaitResult({
+              sessionId: match.sessionId, promptId: '', status: 'reused', webUrl: match.webUrl,
+            }, wait);
             return {
-              sessionId: match.sessionId,
-              promptId: '',
-              submitStatus: 'reused',
-              webUrl: match.webUrl,
-              wait: { status: 'idle' },
-              handoff,
-              changedFiles: handoff.changedFiles,
-              reviewPackage,
+              ...result,
               dedupe: { ...baseDedupe, reason: 'idle' },
             };
           }
@@ -785,11 +930,7 @@ export function createToolHandlers(deps: ToolDeps): ToolHandlers {
         }
 
         const delegated = await handlers.kimi_delegate_task(input);
-        const wait = await handlers.kimi_wait_until_idle({
-          sessionId: delegated.sessionId,
-          timeoutMs: input.timeoutMs,
-        });
-        const baseResult = await buildDelegateAndWaitResult(delegated, wait);
+        const baseResult = await waitForDelegatedPrompt(delegated, input.timeoutMs);
 
         let reason: string | undefined;
         if (match) {
@@ -815,18 +956,26 @@ export function createToolHandlers(deps: ToolDeps): ToolHandlers {
       }
 
       const delegated = await handlers.kimi_delegate_task(input);
-      const wait = await handlers.kimi_wait_until_idle({
-        sessionId: delegated.sessionId,
-        timeoutMs: input.timeoutMs,
-      });
-      return buildDelegateAndWaitResult(delegated, wait);
+      return waitForDelegatedPrompt(delegated, input.timeoutMs);
     },
 
     async kimi_wait_until_idle(input: WaitUntilIdleInput) {
       const result = await waitUntilIdle({
         sessionId: input.sessionId,
         timeoutMs: input.timeoutMs ?? deps.config.requestTimeoutMs,
-        pollStatus: async () => ({ status: await deps.kimi.getRuntimeStatus(input.sessionId) }),
+        pollStatus: async () => {
+          const status = await deps.kimi.getRuntimeStatus(input.sessionId);
+          // Terminal/idle session snapshots can occur between queued turns.
+          if (status !== 'running' && status !== 'awaiting_approval' && status !== 'awaiting_question') {
+            try {
+              const queue = await deps.kimi.listPrompts(input.sessionId);
+              if (queue.active || queue.queued.length > 0) return { status: 'running' };
+            } catch (error) {
+              if (!await promptQueueUnsupported(error, deps.kimi, input.sessionId)) throw error;
+            }
+          }
+          return { status };
+        },
       });
       if (result.status === 'awaiting_approval') {
         return {
@@ -841,6 +990,59 @@ export function createToolHandlers(deps: ToolDeps): ToolHandlers {
         };
       }
       return result;
+    },
+
+    async kimi_wait_for_prompt(input: WaitForPromptInput) {
+      const timeoutMs = input.timeoutMs ?? deps.config.requestTimeoutMs;
+      const deadline = Date.now() + timeoutMs;
+      do {
+        try {
+          const queue = await deps.kimi.listPrompts(input.sessionId);
+          const prompt = findPrompt(queue, input.promptId);
+          const sessionStatus = await deps.kimi.getRuntimeStatus(input.sessionId);
+          if (!prompt) {
+            return {
+              sessionId: input.sessionId,
+              promptId: input.promptId,
+              status: 'settled',
+              sessionStatus,
+              queueEvidence: 'available',
+            };
+          }
+          if (prompt.status === 'blocked' || sessionStatus === 'awaiting_approval' || sessionStatus === 'awaiting_question') {
+            return {
+              sessionId: input.sessionId,
+              promptId: input.promptId,
+              status: 'blocked',
+              sessionStatus,
+              queueEvidence: 'available',
+            };
+          }
+        } catch (error) {
+          if (!await promptQueueUnsupported(error, deps.kimi, input.sessionId)) throw error;
+          const wait = await handlers.kimi_wait_until_idle({ sessionId: input.sessionId, timeoutMs: Math.max(0, deadline - Date.now()) });
+          return {
+            sessionId: input.sessionId,
+            promptId: input.promptId,
+            status: wait.status === 'timeout' || wait.status === 'running' ? 'timeout'
+              : wait.status === 'awaiting_approval' || wait.status === 'awaiting_question' ? 'blocked' : 'settled',
+            sessionStatus: wait.status === 'timeout' ? 'running' : wait.status,
+            queueEvidence: 'unavailable',
+          };
+        }
+
+        const remaining = deadline - Date.now();
+        if (remaining <= 0) break;
+        await sleep(Math.min(500, remaining));
+      } while (Date.now() <= deadline);
+
+      return {
+        sessionId: input.sessionId,
+        promptId: input.promptId,
+        status: 'timeout',
+        sessionStatus: await deps.kimi.getRuntimeStatus(input.sessionId),
+        queueEvidence: 'available',
+      };
     },
 
     async kimi_get_handoff(input: GetHandoffInput) {
@@ -930,15 +1132,14 @@ export function createToolHandlers(deps: ToolDeps): ToolHandlers {
         plan: input.plan ?? [],
         swarmSuggestions: input.swarmMode ? input.plan : undefined,
       });
-      const result = await deps.kimi.submitPrompt(input.sessionId, {
-        content: prompt,
-        model: await resolveModel(deps.kimi, input.model, deps.config),
-        thinking: input.thinking ?? deps.config.defaultThinking,
-        permissionMode: deps.config.defaultPermissionMode,
-        planMode: false,
-        swarmMode: input.swarmMode,
-      });
-      return { sessionId: input.sessionId, promptId: result.prompt_id, status: result.status, webUrl: buildWebUrl(deps.config.serverUrl, input.sessionId) };
+      const result = await submitPromptSafely(input.sessionId, prompt, input);
+      return {
+        sessionId: input.sessionId,
+        promptId: result.prompt_id,
+        status: result.status,
+        webUrl: buildWebUrl(deps.config.serverUrl, input.sessionId),
+        queueAllowed: input.allowQueue === true,
+      };
     },
 
     async kimi_get_diff(input: GetDiffInput) {
@@ -947,7 +1148,114 @@ export function createToolHandlers(deps: ToolDeps): ToolHandlers {
 
     async kimi_abort(input: AbortInput) {
       await deps.kimi.abortSession(input.sessionId);
-      return { sessionId: input.sessionId, aborted: true };
+      return {
+        sessionId: input.sessionId,
+        aborted: true,
+        abortRequested: true,
+        terminationConfirmed: false,
+        scope: 'active_turn',
+      };
+    },
+
+    async kimi_abort_and_wait(input: AbortAndWaitInput) {
+      let queueEvidence: AbortAndWaitResult['queueEvidence'] = 'available';
+      let abortRequested = false;
+      let promptId = input.promptId;
+      let before: PromptQueueSnapshot | undefined;
+      try {
+        before = await deps.kimi.listPrompts(input.sessionId);
+      } catch (error) {
+        if (!await promptQueueUnsupported(error, deps.kimi, input.sessionId)) throw error;
+        if (input.promptId) {
+          throw new BridgeToolError('PROMPT_ABORT_UNAVAILABLE', 'This server cannot verify a prompt-specific abort. No abort was sent.', { promptId: input.promptId, queueEvidence: 'unavailable' });
+        }
+        queueEvidence = 'unavailable';
+      }
+      if (before) {
+        promptId ??= before.active?.prompt_id;
+        if (promptId && before.active?.prompt_id === promptId) {
+          await deps.kimi.abortPrompt(input.sessionId, promptId);
+          abortRequested = true;
+        } else if (promptId && before.queued.some((prompt) => prompt.prompt_id === promptId)) {
+          throw new BridgeToolError(
+            'QUEUED_PROMPT_NOT_CANCELLABLE',
+            'Kimi exposes abort for the running prompt but does not expose cancellation for an individual queued prompt.',
+            { promptId, queuedPromptIds: before.queued.map((prompt) => prompt.prompt_id) },
+          );
+        } else if (promptId) {
+          throw new BridgeToolError('PROMPT_NOT_PENDING', 'The requested prompt is not active or queued.', { promptId });
+        }
+      } else {
+        await deps.kimi.abortSession(input.sessionId);
+        abortRequested = true;
+      }
+
+      const timeoutMs = input.timeoutMs ?? deps.config.requestTimeoutMs;
+      const deadline = Date.now() + timeoutMs;
+      do {
+        if (queueEvidence === 'available') {
+          const queue = await deps.kimi.listPrompts(input.sessionId);
+          if (!queue.active && queue.queued.length === 0) {
+            const finalStatus = await deps.kimi.getRuntimeStatus(input.sessionId);
+            if (finalStatus !== 'running' && finalStatus !== 'awaiting_approval' && finalStatus !== 'awaiting_question') {
+              return {
+                sessionId: input.sessionId,
+                abortRequested,
+                terminationConfirmed: true,
+                finalStatus,
+                activePromptId: undefined,
+                queuedPromptIds: [],
+                queueEvidence,
+              };
+            }
+          }
+          if (!queue.active && queue.queued.length > 0) {
+            return {
+              sessionId: input.sessionId,
+              abortRequested,
+              terminationConfirmed: false,
+              finalStatus: 'queued_prompts_remain',
+              activePromptId: undefined,
+              queuedPromptIds: queue.queued.map((prompt) => prompt.prompt_id),
+              queueEvidence,
+            };
+          }
+        } else {
+          const finalStatus = await deps.kimi.getRuntimeStatus(input.sessionId);
+          if (finalStatus !== 'running') {
+            return {
+              sessionId: input.sessionId,
+              abortRequested,
+              terminationConfirmed: false,
+              finalStatus,
+              activePromptId: undefined,
+              queuedPromptIds: [],
+              queueEvidence,
+            };
+          }
+        }
+
+        const remaining = deadline - Date.now();
+        if (remaining <= 0) break;
+        await sleep(Math.min(500, remaining));
+      } while (Date.now() <= deadline);
+
+      let activePromptId: string | undefined;
+      let queuedPromptIds: string[] = [];
+      if (queueEvidence === 'available') {
+        const queue = await deps.kimi.listPrompts(input.sessionId);
+        activePromptId = queue.active?.prompt_id;
+        queuedPromptIds = queue.queued.map((prompt) => prompt.prompt_id);
+      }
+      return {
+        sessionId: input.sessionId,
+        abortRequested,
+        terminationConfirmed: false,
+        finalStatus: 'timeout',
+        activePromptId,
+        queuedPromptIds,
+        queueEvidence,
+      };
     },
   };
 
@@ -956,11 +1264,13 @@ export function createToolHandlers(deps: ToolDeps): ToolHandlers {
     kimi_delegate_task: withPreflight(deps.preflight, handlers.kimi_delegate_task),
     kimi_delegate_and_wait: withPreflight(deps.preflight, handlers.kimi_delegate_and_wait),
     kimi_wait_until_idle: withPreflight(deps.preflight, handlers.kimi_wait_until_idle),
+    kimi_wait_for_prompt: withPreflight(deps.preflight, handlers.kimi_wait_for_prompt),
     kimi_get_handoff: withPreflight(deps.preflight, handlers.kimi_get_handoff),
     kimi_review_package: withPreflight(deps.preflight, handlers.kimi_review_package),
     kimi_continue_task: withPreflight(deps.preflight, handlers.kimi_continue_task),
     kimi_get_diff: withPreflight(deps.preflight, handlers.kimi_get_diff),
     kimi_abort: withPreflight(deps.preflight, handlers.kimi_abort),
+    kimi_abort_and_wait: withPreflight(deps.preflight, handlers.kimi_abort_and_wait),
     kimi_recent_sessions: withPreflight(deps.preflight, handlers.kimi_recent_sessions),
     kimi_find_recent_session: withPreflight(deps.preflight, handlers.kimi_find_recent_session),
   };

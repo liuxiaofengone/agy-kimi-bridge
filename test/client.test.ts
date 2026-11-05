@@ -67,6 +67,44 @@ describe('KimiClient', () => {
     expect(http.post).toHaveBeenCalledWith('/sessions/s1:abort');
   });
 
+  it('reads the active and queued prompt snapshot', async () => {
+    const queue = {
+      active: {
+        prompt_id: 'p1',
+        user_message_id: 'm1',
+        status: 'running' as const,
+        content: [{ type: 'text', text: 'first' }],
+        created_at: '2026-11-05T00:00:00Z',
+      },
+      queued: [{
+        prompt_id: 'p2',
+        user_message_id: 'm2',
+        status: 'queued' as const,
+        content: [{ type: 'text', text: 'second' }],
+        created_at: '2026-11-05T00:00:01Z',
+      }],
+    };
+    const http: HttpPort = {
+      post: vi.fn(),
+      get: vi.fn(async () => queue) as HttpPort['get'],
+    };
+    const client = new KimiClient(http);
+
+    await expect(client.listPrompts('s/1')).resolves.toEqual(queue);
+    expect(http.get).toHaveBeenCalledWith('/sessions/s%2F1/prompts');
+  });
+
+  it('aborts a running prompt by id', async () => {
+    const http: HttpPort = {
+      post: vi.fn(async () => ({ aborted: true })) as HttpPort['post'],
+      get: vi.fn(),
+    };
+    const client = new KimiClient(http);
+
+    await expect(client.abortPrompt('s/1', 'p/1')).resolves.toEqual({ aborted: true });
+    expect(http.post).toHaveBeenCalledWith('/sessions/s%2F1/prompts/p%2F1:abort');
+  });
+
   it('lists pending approvals and questions', async () => {
     const http: HttpPort = {
       post: vi.fn(),

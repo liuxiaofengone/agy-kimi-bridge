@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createToolHandlers } from '../src/tools.js';
+import { createToolHandlers, MAX_SESSION_DIRTY_PATHS } from '../src/tools.js';
 import type { KimiClient } from '../src/kimi/client.js';
 import type { BridgeConfig } from '../src/config.js';
 import type { KimiPreflight } from '../src/preflight.js';
@@ -17,6 +17,8 @@ function makeKimi(overrides: Record<string, unknown> = {}): KimiClient {
     getGitStatus: vi.fn(async () => ({ entries: {}, additions: 0, deletions: 0 })) as unknown as KimiClient['getGitStatus'],
     getFileDiff: vi.fn(async (_sessionId: string, path: string) => ({ path, diff: '' })) as unknown as KimiClient['getFileDiff'],
     abortSession: vi.fn(async () => undefined) as unknown as KimiClient['abortSession'],
+    listPrompts: vi.fn(async () => ({ active: null, queued: [] })) as unknown as KimiClient['listPrompts'],
+    abortPrompt: vi.fn(async () => ({ aborted: true })) as unknown as KimiClient['abortPrompt'],
     resolveDefaultModel: vi.fn(async () => 'kimi-k2') as unknown as KimiClient['resolveDefaultModel'],
     listPendingApprovals: vi.fn(async () => []) as unknown as KimiClient['listPendingApprovals'],
     listPendingQuestions: vi.fn(async () => []) as unknown as KimiClient['listPendingQuestions'],
@@ -789,8 +791,165 @@ describe('tool handlers', () => {
     const kimi = makeKimi();
     const handlers = createToolHandlers({ kimi, config: makeConfig(), preflight: makePreflight() });
 
-    await expect(handlers.kimi_abort({ sessionId: 's1' })).resolves.toEqual({ sessionId: 's1', aborted: true });
+    await expect(handlers.kimi_abort({ sessionId: 's1' })).resolves.toEqual({
+      sessionId: 's1',
+      aborted: true,
+      abortRequested: true,
+      terminationConfirmed: false,
+      scope: 'active_turn',
+    });
     expect(kimi.abortSession).toHaveBeenCalledWith('s1');
+  });
+
+  it('rejects a continuation while another prompt is active', async () => {
+    const submitPrompt = vi.fn();
+    const kimi = makeKimi({
+      submitPrompt,
+      listPrompts: vi.fn(async () => ({
+        active: { prompt_id: 'active-prompt', user_message_id: 'm1', status: 'running', content: [], created_at: 'now' },
+        queued: [],
+      })),
+    });
+    const handlers = createToolHandlers({ kimi, config: makeConfig(), preflight: makePreflight() });
+
+    await expect(handlers.kimi_continue_task({ sessionId: 's1', task: 'follow up' }))
+      .rejects.toMatchObject({ code: 'SESSION_BUSY' });
+    expect(submitPrompt).not.toHaveBeenCalled();
+  });
+
+  it('allows an explicitly queued continuation while another prompt is active', async () => {
+    const submitPrompt = vi.fn(async () => ({ prompt_id: 'p2', user_message_id: 'm2', status: 'queued' }));
+    const kimi = makeKimi({
+      submitPrompt,
+      listPrompts: vi.fn(async () => ({
+        active: { prompt_id: 'p1', user_message_id: 'm1', status: 'running', content: [], created_at: 'now' },
+        queued: [],
+      })),
+    });
+    const handlers = createToolHandlers({ kimi, config: makeConfig(), preflight: makePreflight() });
+
+    await expect(handlers.kimi_continue_task({ sessionId: 's1', task: 'follow up', allowQueue: true }))
+      .resolves.toMatchObject({ promptId: 'p2', status: 'queued', queueAllowed: true });
+    expect(submitPrompt).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects delegate_task against a busy existing session by default', async () => {
+    const submitPrompt = vi.fn();
+    const kimi = makeKimi({
+      submitPrompt,
+      listPrompts: vi.fn(async () => ({
+        active: { prompt_id: 'p1', user_message_id: 'm1', status: 'running', content: [], created_at: 'now' },
+        queued: [],
+      })),
+    });
+    const handlers = createToolHandlers({ kimi, config: makeConfig(), preflight: makePreflight() });
+
+    await expect(handlers.kimi_delegate_task({
+      cwd: '/repo',
+      sessionId: 's1',
+      task: 'follow up',
+      acceptanceCriteria: [],
+      plan: [],
+    })).rejects.toMatchObject({ code: 'SESSION_BUSY' });
+    expect(submitPrompt).not.toHaveBeenCalled();
+  });
+
+  it('does not claim termination when abort leaves queued prompts behind', async () => {
+    const listPrompts = vi.fn()
+      .mockResolvedValueOnce({
+        active: { prompt_id: 'p1', user_message_id: 'm1', status: 'running', content: [], created_at: 'now' },
+        queued: [{ prompt_id: 'p2', user_message_id: 'm2', status: 'queued', content: [], created_at: 'now' }],
+      })
+      .mockResolvedValueOnce({
+        active: null,
+        queued: [{ prompt_id: 'p2', user_message_id: 'm2', status: 'queued', content: [], created_at: 'now' }],
+      });
+    const kimi = makeKimi({ listPrompts });
+    const handlers = createToolHandlers({ kimi, config: makeConfig(), preflight: makePreflight() });
+
+    await expect(handlers.kimi_abort_and_wait({ sessionId: 's1', timeoutMs: 0 })).resolves.toEqual({
+      sessionId: 's1',
+      abortRequested: true,
+      terminationConfirmed: false,
+      finalStatus: 'queued_prompts_remain',
+      activePromptId: undefined,
+      queuedPromptIds: ['p2'],
+      queueEvidence: 'available',
+    });
+  });
+
+  it('does not abort another turn when the requested prompt is only queued', async () => {
+    const abortSession = vi.fn();
+    const abortPrompt = vi.fn();
+    const kimi = makeKimi({
+      abortSession,
+      abortPrompt,
+      listPrompts: vi.fn(async () => ({
+        active: { prompt_id: 'p1', user_message_id: 'm1', status: 'running', content: [], created_at: 'now' },
+        queued: [{ prompt_id: 'p2', user_message_id: 'm2', status: 'queued', content: [], created_at: 'now' }],
+      })),
+    });
+    const handlers = createToolHandlers({ kimi, config: makeConfig(), preflight: makePreflight() });
+
+    await expect(handlers.kimi_abort_and_wait({ sessionId: 's1', promptId: 'p2' }))
+      .rejects.toMatchObject({ code: 'QUEUED_PROMPT_NOT_CANCELLABLE' });
+    expect(abortSession).not.toHaveBeenCalled();
+    expect(abortPrompt).not.toHaveBeenCalled();
+  });
+
+  it('waits while background work keeps the session running after the prompt queue clears', async () => {
+    const listPrompts = vi.fn()
+      .mockResolvedValueOnce({
+        active: { prompt_id: 'p1', user_message_id: 'm1', status: 'running', content: [], created_at: 'now' },
+        queued: [],
+      })
+      .mockResolvedValue({ active: null, queued: [] });
+    const kimi = makeKimi({
+      listPrompts,
+      getRuntimeStatus: vi.fn(async () => 'running'),
+    });
+    const handlers = createToolHandlers({ kimi, config: makeConfig(), preflight: makePreflight() });
+
+    const result = await handlers.kimi_abort_and_wait({ sessionId: 's1', timeoutMs: 0 });
+
+    expect(result).toMatchObject({
+      terminationConfirmed: false,
+      finalStatus: 'timeout',
+      queueEvidence: 'available',
+    });
+  });
+
+  it('waits for the target prompt instead of accepting a transient session idle', async () => {
+    const listPrompts = vi.fn()
+      .mockResolvedValueOnce({
+        active: null,
+        queued: [{ prompt_id: 'p2', user_message_id: 'm2', status: 'queued', content: [], created_at: 'now' }],
+      })
+      .mockResolvedValueOnce({
+        active: { prompt_id: 'p2', user_message_id: 'm2', status: 'running', content: [], created_at: 'now' },
+        queued: [],
+      })
+      .mockResolvedValueOnce({ active: null, queued: [] });
+    const kimi = makeKimi({
+      listPrompts,
+      getRuntimeStatus: vi.fn(async () => 'idle'),
+    });
+    const handlers = createToolHandlers({ kimi, config: makeConfig(), preflight: makePreflight() });
+
+    const result = await handlers.kimi_wait_for_prompt({
+      sessionId: 's1',
+      promptId: 'p2',
+      timeoutMs: 1100,
+    });
+
+    expect(result).toEqual({
+      sessionId: 's1',
+      promptId: 'p2',
+      status: 'settled',
+      sessionStatus: 'idle',
+      queueEvidence: 'available',
+    });
+    expect(listPrompts).toHaveBeenCalledTimes(3);
   });
 
   it('returns bridge status without leaking the token', async () => {
@@ -2876,6 +3035,34 @@ describe('tool handlers', () => {
           },
         },
       });
+    });
+
+    it('caps initial_dirty_paths in session metadata while keeping the full baseline', async () => {
+      const paths = Array.from({ length: 1001 }, (_, index) => `dirty/f${index}.ts`);
+      const createSession = vi.fn(async (_input: {
+        metadata?: { codex_kimi_bridge?: Record<string, unknown> };
+      }) => ({ id: 's1' }));
+      const gitInspector = makeGitInspector({
+        available: true,
+        baseline: {
+          schemaVersion: 1,
+          baseCommit: 'a'.repeat(40),
+          initialDirtyPaths: paths,
+        },
+      });
+      const kimi = makeKimi({ createSession });
+      const handlers = createToolHandlers({ kimi: kimi as never, config: makeConfig(), preflight: makePreflight(), gitInspector });
+
+      await handlers.kimi_delegate_task({
+        cwd: '/repo',
+        task: 'implement x',
+        acceptanceCriteria: ['passes tests'],
+        plan: ['edit code'],
+      });
+
+      const bridge = createSession.mock.calls[0][0].metadata?.codex_kimi_bridge;
+      expect(bridge?.initial_dirty_paths).toEqual(paths.slice(0, MAX_SESSION_DIRTY_PATHS));
+      expect(bridge?.initial_dirty_paths_truncated).toBe(true);
     });
 
     it('delegates without bridge metadata when baseline capture fails', async () => {

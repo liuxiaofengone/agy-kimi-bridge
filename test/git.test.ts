@@ -87,6 +87,22 @@ describe('NodeGitInspector', () => {
     }
   });
 
+  it('collapses untracked directories so baseline metadata stays bounded', async () => {
+    const repo = await track(initRepo());
+    await commitFile(repo, 'src/a.ts', 'export const a = 1;\n', 'feat: initial');
+    await mkdir(join(repo, 'build', 'nested'), { recursive: true });
+    await writeFile(join(repo, 'build', 'one.js'), '1\n', 'utf8');
+    await writeFile(join(repo, 'build', 'nested', 'two.js'), '2\n', 'utf8');
+
+    const inspector = new NodeGitInspector({ timeoutMs: 5_000, maxOutputBytes: 1_048_576 });
+    const result = await inspector.captureBaseline(repo);
+
+    expect(result.available).toBe(true);
+    if (result.available) {
+      expect(result.baseline.initialDirtyPaths).toEqual(['build/']);
+    }
+  });
+
   it('collects committed changes over a baseline', async () => {
     const repo = await track(initRepo());
     await commitFile(repo, 'src/a.ts', 'export const a = 1;\n', 'feat: initial');
