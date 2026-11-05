@@ -25,6 +25,8 @@
 | 等待委派完成 | 主要按会话状态判断，可能遇到队列切换时的短暂空闲 | 跟踪本次 `promptId` 并检查队列，避免把短暂空闲误认为完成 |
 | 超时后恢复 | 需要结合会话状态自行判断 | 可用 `kimi_wait_for_prompt` 继续观察原 prompt，避免重复提交 |
 | 停止与交接 | 中止请求受理不代表整个会话已停止 | `kimi_abort_and_wait` 观察会话和队列，返回停止确认结果及剩余排队任务 |
+| Windows 基线并发保存 | 并发替换文件可能触发 EPERM | 原子写入、有限重试并保留旧记录；覆盖多进程并发读取和写入 |
+| 路径与开发环境 | 部分路径和验证命令包含平台假设 | 统一平台路径比较与 Git native 工作区输出；项目内 Node 校验器及本地 tsx 子进程入口 |
 | 中文上手 | 主要说明使用英文 | 提供中文安装、配置、委派示例和常见问题说明 |
 
 本分支沿用上游的任务委派、审查包、会话恢复等能力。已运行且健康的服务会被复用；`kimi_bridge_status` 只检查状态，不触发启动。仓库包含构建好的 MCP 安装包，首次安装无需 pnpm 或 TypeScript 编译。
@@ -230,6 +232,8 @@ codex plugin add kimi-delegate@codex-kimi-bridge-local
 
 ## 验证与贡献
 
+当前最终验收：**Windows 与 Ubuntu WSL 均为 376/376 通过，0 失败、0 跳过**；两端类型检查、构建和插件校验均通过。此前 10 项基线失败已逐项修复，并补充并发、故障注入和坏包回归，详见 [跨平台修复与独立验收](docs/cross-platform-hardening-acceptance-2026-11-05.zh-CN.md)。
+
 启动适配曾在 Windows 和 Kimi 2.1.1 上完成真实认证冷启动委派验证。生命周期保护于 2026-11-05 在 Kimi 2.5.0 上完成实际 MCP 调用验证；定向测试 92/92、类型检查及构建通过。该次完整测试为 299/309 通过，剩余 10 项在同环境的原始基线也有失败，涉及 Windows 路径、文件操作、子进程启动及外部脚本路径；详细结果和能力边界见 [验证记录](docs/kimi-lifecycle-verification-2026-11-05.md)。
 
 本地开发可使用：
@@ -239,7 +243,10 @@ pnpm install
 pnpm test
 pnpm typecheck
 pnpm build
+pnpm validate:plugin
 ```
+
+`pnpm validate:plugin` 运行仓库内的 `scripts/validate-plugin.mjs`（Node >= 20，不依赖 Python 或个人目录路径），校验 manifest 必填字段、插件根内的 skill/MCP/bundle 路径、可移植 MCP 打包结构，并拒绝内置 token 值或机器相关路径。
 
 修改 MCP 运行时代码后，应重新构建并提交 `plugins/kimi-delegate/mcp/server.mjs`。文档更新不需要重新构建安装包。
 

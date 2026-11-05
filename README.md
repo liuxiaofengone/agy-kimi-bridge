@@ -17,6 +17,7 @@ Compared with the upstream baseline at [`459d95c`](https://github.com/ximenchuif
 - **Safer continuation:** submitting to an existing busy session is rejected with `SESSION_BUSY` by default; `allowQueue: true` explicitly opts in to queueing.
 - **Prompt-aware completion:** `kimi_delegate_and_wait` tracks the submitted `promptId` and, when queue data is available, checks it before producing a review package instead of treating a brief idle gap as completion.
 - **Safer interruption and handoff:** `kimi_wait_for_prompt` lets you keep observing a timed-out prompt; `kimi_abort_and_wait` reports whether session termination was confirmed and whether prompts remain queued.
+- **Cross-platform handoff reliability:** atomic baseline writes retry transient sharing conflicts, workspace paths use platform-aware matching and native Git paths, and package validation runs with Node instead of machine-specific Python scripts. The final suite passed **376/376 on both Windows and Ubuntu WSL**, with zero skips; see the [independent acceptance record](docs/cross-platform-hardening-acceptance-2026-11-05.zh-CN.md) (Chinese).
 - **Automatic port discovery:** the plugin defaults to `KIMI_SERVER_URL=auto`. Kimi binds an OS-assigned loopback port with `kimi web --no-open --port 0`; the bridge discovers and authenticates that endpoint, persists it locally, and reuses it across MCP restarts. Verified with Kimi 2.5.0.
 - **Actionable startup failures:** startup is supervised through readiness. Early exit produces `KIMI_STARTUP_FAILED`, safe diagnostic codes and `submissionState: "not_submitted"`, instead of hiding a bind error behind a health-check timeout. Raw startup output and tokens are not returned or logged.
 - **Windows background startup:** detached execution with `windowsHide` keeps the startup console hidden; the default arguments also prevent a browser from opening automatically.
@@ -79,10 +80,10 @@ if your installed CLI uses different plugin commands.
 
 ## Development
 
-The validator and cachebuster script paths below are examples from the upstream
-developer's environment. These optional scripts are not included in this
-repository; replace their paths with your own tools if available. They are not
-required for first-time installation or configuration updates.
+Plugin package validation is included in this repository:
+`scripts/validate-plugin.mjs` runs on Node >= 20 with no Python or
+machine-specific paths. Development rebuilds and cache refreshes use the
+commands below and do not require tools from the upstream author's machine.
 
 See the [lifecycle guide](docs/kimi-lifecycle-guardrails.zh-CN.md) for details and examples (Chinese).
 
@@ -91,20 +92,23 @@ pnpm install
 pnpm test
 pnpm typecheck
 pnpm build
-python3 /Users/ximenchuifeng/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py plugins/kimi-delegate
+pnpm validate:plugin
 ```
 
 `pnpm build` compiles `dist/` for development and regenerates the tracked `plugins/kimi-delegate/mcp/server.mjs`. Commit the bundle whenever source changes affect the MCP runtime.
 
 ### Reinstall A Development Build
 
+Wait for current delegated tasks to finish before refreshing the plugin cache:
+
 ```bash
 pnpm build
-python3 /Users/ximenchuifeng/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py plugins/kimi-delegate
+pnpm validate:plugin
+codex plugin remove kimi-delegate@codex-kimi-bridge-local
 codex plugin add kimi-delegate@codex-kimi-bridge-local
 ```
 
-Open a new Codex task after reinstalling. The helper adds a local `+codex.<timestamp>` cachebuster; release commits keep the plugin version as plain semantic version `0.3.0`. Do not hand-edit `.agents/plugins/marketplace.json` to refresh an installed plugin.
+Open a new Codex task after reinstalling. The remove command refreshes the local cache. A development manifest may also use `+codex.<timestamp>` to install a separate cache version; release manifests keep plain semantic versions. Do not hand-edit `.agents/plugins/marketplace.json` to refresh an installed plugin.
 
 Upgrading a cloned checkout only requires pulling the desired release and reinstalling the same plugin. You do not need to re-add an already configured marketplace.
 

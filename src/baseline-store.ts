@@ -1,8 +1,9 @@
-import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { OBJECT_ID_RE, type GitBaseline } from './git.js';
 import { automaticServerIdentity } from './server-discovery.js';
+import { writeFileAtomic } from './atomic-write.js';
 
 export interface BaselineStore {
   save(sessionId: string, baseline: GitBaseline): Promise<void>;
@@ -19,7 +20,26 @@ function safeFileName(input: string): string {
 }
 
 function normalizeServerUrl(input: string): string {
-  return input.trim().toLowerCase();
+  // Data-directory identities (auto:) are produced by automaticServerIdentity
+  // and must be compared byte-exactly: POSIX data paths are case- and
+  // whitespace-sensitive, and Windows identities are already lowercased there.
+  // Lowercasing them here would merge distinct Linux homes such as
+  // '/Case/Home' and '/case/home' into one baseline partition.
+  if (input.toLowerCase().startsWith('auto:')) {
+    return input;
+  }
+  try {
+    const url = new URL(input);
+    // Only the scheme and host are case-insensitive. The path, query, and
+    // fragment are preserved verbatim so distinct endpoints are never merged.
+    // For common root URLs (no path) the result is byte-identical to the
+    // legacy whole-string lowercase normalization, so existing baselines keep
+    // resolving after an upgrade.
+    const path = url.pathname === '/' ? '' : url.pathname;
+    return `${url.protocol.toLowerCase()}//${url.host.toLowerCase()}${path}${url.search}${url.hash}`;
+  } catch {
+    return input.trim().toLowerCase();
+  }
 }
 
 function serverDirName(serverUrl: string): string {
@@ -38,10 +58,6 @@ export class FileBaselineStore implements BaselineStore {
   }
 
   async save(sessionId: string, baseline: GitBaseline): Promise<void> {
-    const file = this.filePath(sessionId);
-    const tempFile = `${file}.${randomUUID()}.tmp`;
-    await mkdir(this.serverDir, { recursive: true });
-
     const payload: Record<string, unknown> = {
       schema_version: baseline.schemaVersion,
       base_commit: baseline.baseCommit,
@@ -57,17 +73,7 @@ export class FileBaselineStore implements BaselineStore {
       }));
     }
 
-    try {
-      await writeFile(tempFile, JSON.stringify(payload), 'utf8');
-      await rename(tempFile, file);
-    } catch (err) {
-      try {
-        await rm(tempFile, { force: true });
-      } catch {
-        // Best-effort cleanup of the temporary file.
-      }
-      throw err;
-    }
+    await writeFileAtomic(this.filePath(sessionId), JSON.stringify(payload));
   }
 
   async load(sessionId: string): Promise<GitBaseline | undefined> {

@@ -2,6 +2,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import path from 'node:path';
 import type { CommitSummary, FileDiff, HandoffChangeSet } from './handoff.js';
+import { normalizeWorkspacePathForCompare, toCanonicalNativePath } from './paths.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -117,8 +118,10 @@ export class NodeGitInspector implements GitInspector {
   }
 
   private normalizeWorktreePath(p: string): string {
-    const normalized = path.normalize(p);
-    return normalized.endsWith('/') && normalized.length > 1 ? normalized.slice(0, -1) : normalized;
+    // `git worktree list` prints forward slashes even on Windows; compare
+    // against a platform-canonical key so baseline and current listings match
+    // regardless of slash style, drive casing, or trailing separators.
+    return normalizeWorkspacePathForCompare(p);
   }
 
   private async git(cwd: string, args: string[], maxBuffer?: number): Promise<Buffer> {
@@ -209,12 +212,12 @@ export class NodeGitInspector implements GitInspector {
       }
   > {
     if (!baseline.worktrees || baseline.worktrees.length === 0) {
-      return { kind: 'fallback', path: sessionCwd };
+      return { kind: 'fallback', path: await toCanonicalNativePath(sessionCwd) };
     }
 
     const listResult = await this.tryGit(sessionCwd, ['worktree', 'list', '--porcelain', '-z'], this.metadataMaxBuffer);
     if (!listResult.ok) {
-      return { kind: 'fallback', path: sessionCwd };
+      return { kind: 'fallback', path: await toCanonicalNativePath(sessionCwd) };
     }
 
     const currentWorktrees = parseWorktreeList(listResult.stdout);
@@ -241,16 +244,23 @@ export class NodeGitInspector implements GitInspector {
       }
     }
 
+    // Publish canonical native paths: `git worktree list` reports forward
+    // slashes on Windows, while consumers (session cwd realpath, reviewer
+    // tooling) compare against native realpaths.
     if (candidates.length === 1) {
-      return { kind: 'selected', path: candidates[0].path };
+      return { kind: 'selected', path: await toCanonicalNativePath(candidates[0].path) };
     }
     if (candidates.length === 0) {
-      return { kind: 'fallback', path: sessionCwd };
+      return { kind: 'fallback', path: await toCanonicalNativePath(sessionCwd) };
     }
     return {
       kind: 'unavailable',
       reason: 'ambiguous_worktrees',
-      diagnostics: { candidates },
+      diagnostics: {
+        candidates: await Promise.all(
+          candidates.map(async (candidate) => ({ ...candidate, path: await toCanonicalNativePath(candidate.path) })),
+        ),
+      },
     };
   }
 

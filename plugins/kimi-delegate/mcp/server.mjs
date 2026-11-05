@@ -21105,14 +21105,44 @@ import { basename, resolve as resolve2 } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // src/baseline-store.ts
-import { mkdir as mkdir2, readFile as readFile2, rename as rename2, rm as rm2, writeFile as writeFile2 } from "node:fs/promises";
+import { readFile as readFile2 } from "node:fs/promises";
 import { join as join2 } from "node:path";
-import { createHash as createHash2, randomUUID as randomUUID2 } from "node:crypto";
+import { createHash as createHash2 } from "node:crypto";
 
 // src/git.ts
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+
+// src/paths.ts
+import { realpath } from "node:fs/promises";
 import path from "node:path";
+function normalizeWorkspacePathForCompare(input, platform = process.platform) {
+  if (platform === "win32") {
+    const unified = input.replace(/\//g, "\\");
+    let normalized2 = path.win32.normalize(unified);
+    const root = path.win32.parse(normalized2).root;
+    if (normalized2.length > root.length) {
+      normalized2 = normalized2.replace(/[\\/]+$/, "");
+    } else if (root.endsWith("\\") && root.length > 3) {
+      normalized2 = root.slice(0, -1);
+    }
+    return normalized2.toLowerCase();
+  }
+  let normalized = path.posix.normalize(input);
+  if (normalized.length > 1 && normalized.endsWith("/")) {
+    normalized = normalized.slice(0, -1);
+  }
+  return normalized;
+}
+async function toCanonicalNativePath(input) {
+  try {
+    return await realpath(input);
+  } catch {
+    return path.resolve(input);
+  }
+}
+
+// src/git.ts
 var execFileAsync = promisify(execFile);
 var OBJECT_ID_RE = /^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/;
 function isBufferOutput(output) {
@@ -21172,8 +21202,7 @@ var NodeGitInspector = class {
     return Math.max(this.maxOutputBytes, 1048576);
   }
   normalizeWorktreePath(p) {
-    const normalized = path.normalize(p);
-    return normalized.endsWith("/") && normalized.length > 1 ? normalized.slice(0, -1) : normalized;
+    return normalizeWorkspacePathForCompare(p);
   }
   async git(cwd, args, maxBuffer) {
     const result = await execFileAsync("git", ["-C", cwd, ...args], {
@@ -21235,11 +21264,11 @@ var NodeGitInspector = class {
   }
   async resolveReviewWorkspace(sessionCwd, baseline) {
     if (!baseline.worktrees || baseline.worktrees.length === 0) {
-      return { kind: "fallback", path: sessionCwd };
+      return { kind: "fallback", path: await toCanonicalNativePath(sessionCwd) };
     }
     const listResult = await this.tryGit(sessionCwd, ["worktree", "list", "--porcelain", "-z"], this.metadataMaxBuffer);
     if (!listResult.ok) {
-      return { kind: "fallback", path: sessionCwd };
+      return { kind: "fallback", path: await toCanonicalNativePath(sessionCwd) };
     }
     const currentWorktrees = parseWorktreeList(listResult.stdout);
     const baselineByPath = new Map(
@@ -21260,15 +21289,19 @@ var NodeGitInspector = class {
       }
     }
     if (candidates.length === 1) {
-      return { kind: "selected", path: candidates[0].path };
+      return { kind: "selected", path: await toCanonicalNativePath(candidates[0].path) };
     }
     if (candidates.length === 0) {
-      return { kind: "fallback", path: sessionCwd };
+      return { kind: "fallback", path: await toCanonicalNativePath(sessionCwd) };
     }
     return {
       kind: "unavailable",
       reason: "ambiguous_worktrees",
-      diagnostics: { candidates }
+      diagnostics: {
+        candidates: await Promise.all(
+          candidates.map(async (candidate) => ({ ...candidate, path: await toCanonicalNativePath(candidate.path) }))
+        )
+      }
     };
   }
   async collectCommittedChanges(cwd, baseline) {
@@ -21458,8 +21491,8 @@ var NodeGitInspector = class {
 };
 
 // src/server-discovery.ts
-import { createHash, randomUUID } from "node:crypto";
-import { mkdir, open, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
+import { createHash, randomUUID as randomUUID2 } from "node:crypto";
+import { mkdir as mkdir2, open as open2, readFile, readdir, rename as rename2, rm as rm2, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -21497,6 +21530,47 @@ var BridgeToolError = class extends Error {
   details;
 };
 
+// src/atomic-write.ts
+import { randomUUID } from "node:crypto";
+import { mkdir, open, rename, rm } from "node:fs/promises";
+import { dirname } from "node:path";
+var RETRYABLE_CODES = /* @__PURE__ */ new Set(["EPERM", "EACCES", "EBUSY", "ENOTEMPTY", "EEXIST"]);
+var ATOMIC_WRITE_MAX_ATTEMPTS = 6;
+function isRetryableRenameConflict(error2) {
+  const code = error2?.code;
+  return code !== void 0 && RETRYABLE_CODES.has(code);
+}
+function delay(ms) {
+  return new Promise((resolve3) => setTimeout(resolve3, ms));
+}
+async function writeFileAtomic(filePath, contents, options) {
+  await mkdir(dirname(filePath), { recursive: true });
+  const temporary = `${filePath}.${randomUUID()}.tmp`;
+  try {
+    for (let attempt = 0; ; attempt += 1) {
+      try {
+        const handle = await open(temporary, "w", options?.mode);
+        try {
+          await handle.writeFile(contents, "utf8");
+          await handle.sync();
+        } finally {
+          await handle.close();
+        }
+        await rename(temporary, filePath);
+        return;
+      } catch (error2) {
+        if (attempt >= ATOMIC_WRITE_MAX_ATTEMPTS - 1 || !isRetryableRenameConflict(error2)) {
+          throw error2;
+        }
+        await delay(20 * 2 ** attempt + Math.floor(Math.random() * 20));
+      }
+    }
+  } finally {
+    await rm(temporary, { force: true }).catch(() => {
+    });
+  }
+}
+
 // src/server-discovery.ts
 function automaticServerIdentity(config2) {
   const path3 = resolve(config2.kimiCodeHome ?? join(homedir(), ".kimi-code"));
@@ -21523,19 +21597,12 @@ var ServerDiscovery = class {
     }
   }
   async save(serverUrl) {
-    await mkdir(this.config.stateDir, { recursive: true });
-    const temporary = `${this.file}.${randomUUID()}.tmp`;
-    try {
-      await writeFile(temporary, JSON.stringify({ schemaVersion: 1, serverUrl }), { mode: 384 });
-      await rename(temporary, this.file);
-    } finally {
-      await rm(temporary, { force: true });
-    }
+    await writeFileAtomic(this.file, JSON.stringify({ schemaVersion: 1, serverUrl }), { mode: 384 });
   }
   async lock(timeoutMs) {
     const directory = `${this.file}.locks`;
-    await mkdir(directory, { recursive: true });
-    const id = `${process.pid}-${randomUUID()}`;
+    await mkdir2(directory, { recursive: true });
+    const id = `${process.pid}-${randomUUID2()}`;
     let ownPath = join(directory, `choosing-${id}`);
     const deadline = Date.now() + timeoutMs;
     const participants = async () => {
@@ -21551,7 +21618,7 @@ var ServerDiscovery = class {
           process.kill(pid, 0);
         } catch (error2) {
           if (error2.code === "ESRCH") {
-            await rm(join(directory, name), { force: true });
+            await rm2(join(directory, name), { force: true });
             continue;
           }
         }
@@ -21560,22 +21627,22 @@ var ServerDiscovery = class {
       return items;
     };
     try {
-      const handle = await open(ownPath, "wx", 384);
+      const handle = await open2(ownPath, "wx", 384);
       await handle.close();
       const ticket = 1 + Math.max(0, ...(await participants()).map((item) => item.ticket));
       const chosenPath = join(directory, `ticket-${ticket}-${id}`);
-      await rename(ownPath, chosenPath);
+      await rename2(ownPath, chosenPath);
       ownPath = chosenPath;
       while (true) {
         const ahead = (await participants()).some((item) => item.id !== id && (item.ticket === 0 || item.ticket < ticket || item.ticket === ticket && item.id < id));
         if (!ahead) return async () => {
-          await rm(ownPath, { force: true });
+          await rm2(ownPath, { force: true });
         };
         if (Date.now() >= deadline) throw new BridgeToolError("KIMI_STARTUP_LOCK_TIMEOUT", "Another bridge process is starting Kimi. Retry without submitting a duplicate task.", { submissionState: "not_submitted" });
         await new Promise((resolve3) => setTimeout(resolve3, 100));
       }
     } catch (error2) {
-      await rm(ownPath, { force: true });
+      await rm2(ownPath, { force: true });
       throw error2;
     }
   }
@@ -21586,7 +21653,16 @@ function safeFileName(input) {
   return Buffer.from(input, "utf8").toString("base64url");
 }
 function normalizeServerUrl(input) {
-  return input.trim().toLowerCase();
+  if (input.toLowerCase().startsWith("auto:")) {
+    return input;
+  }
+  try {
+    const url = new URL(input);
+    const path3 = url.pathname === "/" ? "" : url.pathname;
+    return `${url.protocol.toLowerCase()}//${url.host.toLowerCase()}${path3}${url.search}${url.hash}`;
+  } catch {
+    return input.trim().toLowerCase();
+  }
 }
 function serverDirName(serverUrl) {
   return createHash2("sha256").update(normalizeServerUrl(serverUrl), "utf8").digest("hex");
@@ -21600,9 +21676,6 @@ var FileBaselineStore = class {
     return join2(this.serverDir, `${safeFileName(sessionId)}.json`);
   }
   async save(sessionId, baseline) {
-    const file = this.filePath(sessionId);
-    const tempFile = `${file}.${randomUUID2()}.tmp`;
-    await mkdir2(this.serverDir, { recursive: true });
     const payload = {
       schema_version: baseline.schemaVersion,
       base_commit: baseline.baseCommit,
@@ -21617,16 +21690,7 @@ var FileBaselineStore = class {
         head_commit: wt.headCommit
       }));
     }
-    try {
-      await writeFile2(tempFile, JSON.stringify(payload), "utf8");
-      await rename2(tempFile, file);
-    } catch (err) {
-      try {
-        await rm2(tempFile, { force: true });
-      } catch {
-      }
-      throw err;
-    }
+    await writeFileAtomic(this.filePath(sessionId), JSON.stringify(payload));
   }
   async load(sessionId) {
     let raw;
@@ -22153,7 +22217,7 @@ async function expandGitStatusEntries(input) {
 }
 
 // src/tools.ts
-import { readdir as readdir2, realpath } from "node:fs/promises";
+import { readdir as readdir2, realpath as realpath2 } from "node:fs/promises";
 import path2 from "node:path";
 async function promptQueueUnsupported(error2, kimi, sessionId) {
   if (!(error2 instanceof KimiApiError)) return false;
@@ -22263,8 +22327,7 @@ function parseBaselineMetadata(metadata) {
 }
 function normalizeCwd(cwd) {
   if (cwd === void 0) return void 0;
-  const normalized = path2.normalize(cwd);
-  return normalized.endsWith("/") && normalized.length > 1 ? normalized.slice(0, -1) : normalized;
+  return normalizeWorkspacePathForCompare(cwd);
 }
 function buildRecentSession(serverUrl, session, serverToken) {
   return {
@@ -22870,7 +22933,7 @@ function createToolHandlers(deps) {
         committedResult = await gitInspector.collectCommittedChanges(session.metadata.cwd, baseline);
       } catch {
       }
-      const sessionCwd = await realpath(session.metadata.cwd).catch(() => session.metadata.cwd);
+      const sessionCwd = await realpath2(session.metadata.cwd).catch(() => session.metadata.cwd);
       const reviewWorkspace = committedResult?.reviewWorkspace;
       const workingTreeChanges = reviewWorkspace && reviewWorkspace !== sessionCwd ? {
         available: false,

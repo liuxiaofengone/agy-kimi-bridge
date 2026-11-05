@@ -1,9 +1,10 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdir, open, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, open, readFile, readdir, rename, rm, stat } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import type { BridgeConfig } from './config.js';
 import { BridgeToolError } from './errors.js';
+import { writeFileAtomic } from './atomic-write.js';
 
 export function automaticServerIdentity(config: Pick<BridgeConfig, 'kimiCodeHome'>): string {
   const path = resolve(config.kimiCodeHome ?? join(homedir(), '.kimi-code'));
@@ -31,13 +32,10 @@ export class ServerDiscovery {
   }
 
   async save(serverUrl: string): Promise<void> {
-    await mkdir(this.config.stateDir, { recursive: true });
-    const temporary = `${this.file}.${randomUUID()}.tmp`;
-    try {
-      await writeFile(temporary, JSON.stringify({ schemaVersion: 1, serverUrl }), { mode: 0o600 });
-      // The startup lock serializes updates, including Windows rename replacement.
-      await rename(temporary, this.file);
-    } finally { await rm(temporary, { force: true }); }
+    // The startup lock serializes bridge writers, but antivirus/indexer and
+    // cross-process readers can still trigger transient Windows rename
+    // conflicts; writeFileAtomic handles those without dropping atomicity.
+    await writeFileAtomic(this.file, JSON.stringify({ schemaVersion: 1, serverUrl }), { mode: 0o600 });
   }
 
   async lock(timeoutMs: number): Promise<() => Promise<void>> {

@@ -1,12 +1,34 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { KimiApiError, KimiNetworkError } from '../src/errors.js';
 import { isDirectExecution, runToolHandler } from '../src/index.js';
 
 describe('isDirectExecution', () => {
+  // Exercise real platform behavior: build native absolute paths (with spaces
+  // and non-ASCII characters) and derive the module URL the same way Node
+  // does at process startup, instead of hardcoding POSIX-shaped literals.
+  const nativeRoot = join(tmpdir(), 'codex kimi 桥 entry');
+  const entryPath = join(nativeRoot, 'dist 目录', 'index.js');
+  const entryUrl = pathToFileURL(entryPath).href;
+
   it('returns true when the module URL matches the argv entry path and basename is index.js', () => {
-    expect(isDirectExecution('file:///some/path/dist/index.js', '/some/path/dist/index.js')).toBe(true);
+    expect(isDirectExecution(entryUrl, entryPath)).toBe(true);
+  });
+
+  it('compares normalized absolute paths', () => {
+    const dottyUrl = pathToFileURL(join(nativeRoot, 'dist 目录', '.', 'nested', '..', 'index.js')).href;
+    expect(isDirectExecution(dottyUrl, entryPath)).toBe(true);
+  });
+
+  it('accepts forward-slash argv paths only where the platform treats them as native', () => {
+    const winEntry = 'C:\\repo 目录\\dist\\index.js';
+    const winEntryForwardSlashes = 'C:/repo 目录/dist/index.js';
+    // Windows APIs accept both separators for the same file; POSIX does not.
+    expect(isDirectExecution(pathToFileURL(winEntry).href, winEntryForwardSlashes))
+      .toBe(process.platform === 'win32');
   });
 
   it('returns false when the module URL differs from the argv importer path', () => {
@@ -28,10 +50,6 @@ describe('isDirectExecution', () => {
   it('returns false for malformed module URLs', () => {
     expect(isDirectExecution('not-a-url', '/some/path/dist/index.js')).toBe(false);
     expect(isDirectExecution('', '/some/path/dist/index.js')).toBe(false);
-  });
-
-  it('compares normalized absolute paths', () => {
-    expect(isDirectExecution('file:///some//path/./dist/index.js', '/some/path/dist/index.js')).toBe(true);
   });
 });
 

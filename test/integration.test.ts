@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mkdtemp, rm, mkdir, writeFile, realpath } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { promisify } from 'node:util';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
@@ -60,6 +61,10 @@ function makePreflight(): KimiPreflight {
 }
 
 const execFileAsync = promisify(execFile);
+// Run the fixture with the current Node executable and the repo-local tsx CLI
+// (the same entry the tsx bin shim wraps). This avoids shell interpolation and
+// any reliance on a global pnpm/npm bin directory being on PATH.
+const tsxCli = createRequire(import.meta.url).resolve('tsx/cli');
 
 function makeFakeGitInspector(): GitInspector {
   return {
@@ -97,7 +102,7 @@ async function initGitRepo(): Promise<string> {
 
 async function runReviewPackageInSubprocess(serverUrl: string, stateDir: string, sessionId: string): Promise<import('../src/tools.js').ReviewPackageResult> {
   const fixture = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'run-review-package.ts');
-  const { stdout } = await execFileAsync('pnpm', ['exec', 'tsx', fixture], {
+  const { stdout } = await execFileAsync(process.execPath, [tsxCli, fixture], {
     env: {
       ...process.env,
       KIMI_SERVER_URL: serverUrl,

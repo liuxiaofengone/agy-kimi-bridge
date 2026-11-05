@@ -4,17 +4,12 @@
 
 `codex-kimi-bridge` is a local Codex plugin plus MCP bridge. Its purpose is to let Codex act as planner/reviewer while Kimi Code performs implementation through the local Kimi server.
 
-Default workspace:
+Default workspace: the repository checkout containing this file (clone it
+wherever you work; nothing in the build or tests depends on an absolute path).
 
-```text
-/Users/ximenchuifeng/Coding/codex-kimi-bridge
-```
-
-Related Kimi Code source checkout:
-
-```text
-/Users/ximenchuifeng/Coding/BigWave/kimi-code
-```
+Related Kimi Code source checkout: a local clone of the Kimi Code source tree,
+used only when a task explicitly asks to inspect it. Its location is
+machine-specific and is not required for bridge development.
 
 ## Collaboration Rule
 
@@ -35,10 +30,10 @@ docs/prompts/kimi-delegate-workflow.md
 
 ## Current Plugin State
 
-Local marketplace:
+Local marketplace (repo-relative):
 
 ```text
-/Users/ximenchuifeng/Coding/codex-kimi-bridge/.agents/plugins/marketplace.json
+.agents/plugins/marketplace.json
 ```
 
 Plugin id:
@@ -71,7 +66,7 @@ Then open a new Codex thread or restart Codex if the tool list does not refresh.
 - `plugins/kimi-delegate/mcp/server.mjs` is a tracked generated artifact.
 - Source changes affecting MCP runtime require `pnpm build` and committing the regenerated bundle.
 - Fresh clone installation does not require pnpm because the bundle is tracked.
-- Development reinstalls use `update_plugin_cachebuster.py`; release manifests use plain semantic versions.
+- For development cache refresh, finish active delegated tasks, use `codex plugin remove` then `codex plugin add`, and open a new Codex chat. A separate local `+codex.<timestamp>` manifest version is another cache refresh option. No personal-directory helper scripts are required; release manifests use plain semantic versions.
 
 ## Kimi Server
 
@@ -192,8 +187,13 @@ Run these before accepting implementation:
 pnpm test
 pnpm typecheck
 pnpm build
-python3 /Users/ximenchuifeng/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py plugins/kimi-delegate
+pnpm validate:plugin
 ```
+
+`pnpm validate:plugin` runs the repository-local `scripts/validate-plugin.mjs`
+(Node >= 20, no Python or personal-directory dependencies). It checks the
+manifest fields, plugin-relative skill/MCP/bundle paths, portable MCP packaging,
+and rejects baked-in token values or machine-specific paths.
 
 For plugin installation smoke checks:
 

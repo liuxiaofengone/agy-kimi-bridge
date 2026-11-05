@@ -10,6 +10,7 @@ import type { BridgeStatus, KimiPreflight } from './preflight.js';
 import { readdir, realpath } from 'node:fs/promises';
 import path from 'node:path';
 import { NodeGitInspector, type GitInspector, type GitBaseline, OBJECT_ID_RE } from './git.js';
+import { normalizeWorkspacePathForCompare } from './paths.js';
 import { InMemoryBaselineStore, type BaselineStore } from './baseline-store.js';
 import { BridgeToolError, KimiApiError } from './errors.js';
 import type { PromptQueueSnapshot } from './kimi/types.js';
@@ -367,9 +368,10 @@ function parseBaselineMetadata(metadata: Record<string, unknown> | undefined): G
 
 function normalizeCwd(cwd: string | undefined): string | undefined {
   if (cwd === undefined) return undefined;
-  const normalized = path.normalize(cwd);
-  // Strip trailing slash except for root '/', so '/repo' and '/repo/' compare equal.
-  return normalized.endsWith('/') && normalized.length > 1 ? normalized.slice(0, -1) : normalized;
+  // Platform-canonical comparison: handles trailing separators on both
+  // platforms, Windows slash style/drive casing/UNC, and preserves POSIX
+  // case-sensitivity, so dedupe never merges sessions from different projects.
+  return normalizeWorkspacePathForCompare(cwd);
 }
 
 function buildRecentSession(serverUrl: string, session: RuntimeSession & { created_at?: string; updated_at?: string }, serverToken: string | undefined): RecentSession {
