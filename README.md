@@ -4,14 +4,19 @@
 
 Local Codex plugin and MCP bridge for delegating implementation tasks to Kimi Code while Codex remains the planner and reviewer.
 
-This community fork adds configurable auto-start for modern Kimi, hidden background
-startup on Windows, and consistent token-directory handling. It is based on
+This community fork adds configurable auto-start for modern Kimi, a smoother
+Windows setup, and prompt lifecycle safeguards for safer delegation. It is based on
 [ximenchuifeng/codex-kimi-bridge](https://github.com/ximenchuifeng/codex-kimi-bridge)
-and retains the original MIT license and author attribution. The changes have
-been submitted upstream in [PR #1](https://github.com/ximenchuifeng/codex-kimi-bridge/pull/1).
+and retains the original MIT license and author attribution. The auto-start
+changes have been submitted upstream in [PR #1](https://github.com/ximenchuifeng/codex-kimi-bridge/pull/1).
 
 ## What This Fork Adds
 
+Compared with the upstream baseline at [`459d95c`](https://github.com/ximenchuifeng/codex-kimi-bridge/commit/459d95c), this fork adds:
+
+- **Safer continuation:** submitting to an existing busy session is rejected with `SESSION_BUSY` by default; `allowQueue: true` explicitly opts in to queueing.
+- **Prompt-aware completion:** `kimi_delegate_and_wait` tracks the submitted `promptId` and, when queue data is available, checks it before producing a review package instead of treating a brief idle gap as completion.
+- **Safer interruption and handoff:** `kimi_wait_for_prompt` lets you keep observing a timed-out prompt; `kimi_abort_and_wait` reports whether session termination was confirmed and whether prompts remain queued.
 - **Automatic startup for modern Kimi:** the plugin defaults to `kimi web --no-open --port 58627`, tested with Kimi 2.1.1. The first task call starts the server when needed.
 - **Windows background startup:** detached execution with `windowsHide` keeps the startup console hidden; the default arguments also prevent a browser from opening automatically.
 - **Configurable startup arguments:** `KIMI_SERVER_ARGS` accepts a validated JSON argument array. An omitted or blank value preserves the legacy `server run --keep-alive` command.
@@ -19,9 +24,9 @@ been submitted upstream in [PR #1](https://github.com/ximenchuifeng/codex-kimi-b
 - **PowerShell startup diagnostics:** executable paths and arguments containing spaces or quotes are formatted for the platform's shell.
 - **Chinese onboarding:** the [Chinese guide](README.zh-CN.md) includes installation steps, configuration examples, delegation prompts, and troubleshooting.
 
-The fork retains the upstream delegation, review-package, and session-recovery
-workflow. A healthy server is reused, and `kimi_bridge_status` stays read-only.
-The tracked bundle lets users install from Git without a TypeScript build.
+The safeguards require a server with prompt-queue support for full evidence. On older servers the bridge reports `queueEvidence: "unavailable"` and cannot confirm complete termination. A pre-submit check is not a server-side lock, queued prompts cannot be individually cancelled, and a prompt leaving the queue does not prove that implementation succeeded. Inspect the handoff, diff and tests before accepting work. See the [lifecycle guide](docs/kimi-lifecycle-guardrails.zh-CN.md) (Chinese).
+
+The fork retains the upstream delegation, review-package, and session-recovery workflow. A healthy server is reused, `kimi_bridge_status` stays read-only, and the tracked bundle supports installation without a TypeScript build.
 
 ## Prerequisites
 
@@ -78,7 +83,7 @@ developer's environment. These optional scripts are not included in this
 repository; replace their paths with your own tools if available. They are not
 required for first-time installation or configuration updates.
 
-本次生命周期保护的中文说明和调用示例见 [Kimi 委派生命周期保护](docs/kimi-lifecycle-guardrails.zh-CN.md)。
+See the [lifecycle guide](docs/kimi-lifecycle-guardrails.zh-CN.md) for details and examples (Chinese).
 
 ```bash
 pnpm install
@@ -234,7 +239,7 @@ The bridge accepts both legacy Kimi Session `status` responses and Kimi 0.27+ `b
 - Queued prompts cannot be individually cancelled through the supported Kimi API. An explicitly targeted queued prompt is refused without aborting another active turn.
 - Older servers without prompt-queue support degrade conservatively with `queueEvidence: unavailable`; they never claim complete termination.
 
-完整中文说明、对话调用示例和能力边界见 [Kimi 委派生命周期保护](docs/kimi-lifecycle-guardrails.zh-CN.md)。
+See the [lifecycle guide](docs/kimi-lifecycle-guardrails.zh-CN.md) for examples and limitations (Chinese).
 
 `failed` is a terminal Bridge status. A failed delegate does not produce a successful `reviewPackage`; open `webUrl`, inspect the failure, and use `kimi_continue_task` to continue the same session when recovery is appropriate. `failed` and `aborted` sessions are never automatically reused by dedupe.
 

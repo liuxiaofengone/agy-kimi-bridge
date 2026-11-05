@@ -4,13 +4,13 @@
 
 让 Codex 负责需求理解、任务规划和代码审查，让 Kimi Code 执行具体开发任务。本项目通过本地 MCP 服务连接两者，你可以直接在 Codex 对话中委派工作。
 
-**本分支重点解决现代 Kimi 的自动启动和 Windows 使用体验。** 安装并完成 Kimi Code 自身的账号登录后，首次委派会按需启动 Kimi 服务，省去每次先打开终端运行启动命令的步骤。
+**本分支重点改进现代 Kimi 自动启动、Windows 使用体验和委派任务的生命周期管理。** 安装并完成 Kimi Code 自身的账号登录后，首次委派会按需启动 Kimi 服务；在继续、等待或停止任务时，桥接层也会检查 prompt 队列，帮助避免重复委派和过早交接。
 
 本项目基于 [ximenchuifeng/codex-kimi-bridge](https://github.com/ximenchuifeng/codex-kimi-bridge)，保留原作者署名与 MIT 许可证。启动适配改动已通过 [上游 PR #1](https://github.com/ximenchuifeng/codex-kimi-bridge/pull/1) 提交。
 
 ## 本分支的特点
 
-以下对比针对 Fork 时的上游代码：
+以下对比针对上游基线 [`459d95c`](https://github.com/ximenchuifeng/codex-kimi-bridge/commit/459d95c)：
 
 | 使用场景 | 上游基线 | 本分支 |
 | --- | --- | --- |
@@ -19,9 +19,15 @@
 | Windows 后台运行 | 后台启动未设置 `windowsHide` | 隐藏启动控制台，默认不自动打开浏览器 |
 | 空数据目录配置 | 子进程可能继承空的 `KIMI_CODE_HOME` | 统一解析为 `~/.kimi-code`，使子进程与桥接服务使用一致的认证目录 |
 | Windows 启动诊断 | 启动命令采用 POSIX 引号规则 | 使用 PowerShell 调用和引号规则，支持带空格、单引号的路径与参数 |
+| 向已有会话继续委派 | 提交前不检查会话及队列是否忙碌 | 默认返回 `SESSION_BUSY`；确需新增排队任务时显式设置 `allowQueue: true` |
+| 等待委派完成 | 主要按会话状态判断，可能遇到队列切换时的短暂空闲 | 跟踪本次 `promptId` 并检查队列，避免把短暂空闲误认为完成 |
+| 超时后恢复 | 需要结合会话状态自行判断 | 可用 `kimi_wait_for_prompt` 继续观察原 prompt，避免重复提交 |
+| 停止与交接 | 中止请求受理不代表整个会话已停止 | `kimi_abort_and_wait` 观察会话和队列，返回停止确认结果及剩余排队任务 |
 | 中文上手 | 主要说明使用英文 | 提供中文安装、配置、委派示例和常见问题说明 |
 
 本分支沿用上游的任务委派、审查包、会话恢复等能力。已运行且健康的服务会被复用；`kimi_bridge_status` 只检查状态，不触发启动。仓库包含构建好的 MCP 安装包，首次安装无需 pnpm 或 TypeScript 编译。
+
+队列保护的完整判断依赖 Kimi 服务支持 prompt 队列查询；旧服务会标记 `queueEvidence: "unavailable"`，无法确认整个会话已停止。提交前检查不是跨客户端的服务端锁，排队任务也无法逐条取消；prompt 离开队列不等于开发成功，仍需检查交接、代码 diff 和测试。详细语义见 [Kimi 委派生命周期保护](docs/kimi-lifecycle-guardrails.zh-CN.md)。
 
 ## 快速安装
 
@@ -106,7 +112,15 @@ Codex 负责分析、计划和审查，Kimi 负责实现。
 完成后继续审查并验证。
 ```
 
-如果 Kimi 正在等待批准或回答问题，可以打开返回的 `webUrl` 处理，再继续同一会话。等待超时也可以继续调用 `kimi_wait_until_idle`；`failed` 或 `aborted` 会话不会被自动去重复用，需要检查原因后用 `kimi_continue_task` 继续。
+如果 Kimi 正在等待批准或回答问题，可以打开返回的 `webUrl` 处理，再继续同一会话。等待超时不会停止任务：保留 `sessionId` 和 `promptId`，优先用 `kimi_wait_for_prompt` 继续观察；如果没有 `promptId`，先查找原会话并用 `kimi_wait_until_idle` 观察。`failed` 或 `aborted` 会话不会被自动去重复用，需要检查原因后再决定是否用 `kimi_continue_task` 继续。
+
+### 停止任务并确认交接
+
+```text
+请使用 kimi_abort_and_wait 停止刚才的 Kimi 任务，检查 terminationConfirmed 和剩余排队任务；确认停止前不要让其他代理接管写入。
+```
+
+`kimi_abort` 只请求中止当前主 Agent turn；`terminationConfirmed: true` 表示在本次观察时队列为空且会话不在运行或等待交互。停止确认不保证外部独立进程已经退出，也不能阻止其他客户端之后再次提交任务。
 
 更完整的主控、实现与审查模板见 [委派工作流示例](docs/prompts/kimi-delegate-workflow.md)。
 
@@ -195,7 +209,9 @@ codex plugin add kimi-delegate@codex-kimi-bridge-local
 | 提示不支持 `server` 或 `web` 子命令 | 根据已安装版本的 `kimi --help` 调整 `KIMI_SERVER_ARGS`，参考现代配置或旧版回退说明 |
 | 诊断为 `auth_failed` | 检查桥接服务与 Kimi 服务的数据目录及 `server.token` 是否一致；如显式设置了 `KIMI_SERVER_TOKEN`，确认它与当前服务 token 一致 |
 | 需要查看 Kimi 的执行过程 | 打开工具返回的 `webUrl`；自动启动时默认不会替你打开浏览器 |
-| 原任务中断或等待超时 | 保留会话 ID，先查询原任务状态，再继续等待或补充指令 |
+| 原任务中断或等待超时 | 保留会话 ID 和 prompt ID，先观察原任务；尚未结束时不要重复提交 |
+| 返回 `SESSION_BUSY` | 先等待或处理已有任务；仅在确实要新增排队任务时使用 `allowQueue: true` |
+| 停止后 `terminationConfirmed` 为 `false` | 检查会话状态、排队 prompt 和 `queueEvidence`；确认停止前不要移交写入权限 |
 
 `auth_failed` 表示桥接服务访问 Kimi 服务时的 token 认证失败，与 Kimi 模型账号登录是不同环节。`kimi_bridge_status` 不重新读取 token；实际任务的预检查会在认证失败时重新读取并重试，必要时也可重启 MCP 服务以重新加载认证配置。
 
@@ -207,7 +223,7 @@ codex plugin add kimi-delegate@codex-kimi-bridge-local
 
 ## 验证与贡献
 
-本分支此前在 Windows 上完成了 Kimi 2.1.1 的真实认证冷启动委派验证；50 项配置与预检查测试、4 项安装包检查、类型检查与构建均通过。完整测试为 268/278 通过，其余 10 项是已在未修改上游基线上确认的 Windows 路径、文件操作或外部验证脚本环境问题，详情见 [上游 PR #1](https://github.com/ximenchuifeng/codex-kimi-bridge/pull/1)。
+启动适配曾在 Windows 和 Kimi 2.1.1 上完成真实认证冷启动委派验证。生命周期保护于 2026-11-05 在 Kimi 2.5.0 上完成实际 MCP 调用验证；定向测试 92/92、类型检查及构建通过。该次完整测试为 299/309 通过，剩余 10 项在同环境的原始基线也有失败，涉及 Windows 路径、文件操作、子进程启动及外部脚本路径；详细结果和能力边界见 [验证记录](docs/kimi-lifecycle-verification-2026-11-05.md)。
 
 本地开发可使用：
 
