@@ -1,6 +1,6 @@
 import type { KimiHttpClient } from './http.js';
 import { normalizeRuntimeStatus, type BridgeRuntimeStatus } from './runtime-status.js';
-import type { KimiServerConfig, KimiServerMeta, ListSessionsInput, ListSessionsResult, PendingApproval, PendingQuestion, PermissionMode, PromptSubmitResult, RuntimeSession, SessionStatus, WireSession } from './types.js';
+import type { KimiServerConfig, KimiServerMeta, ListSessionsInput, ListSessionsResult, PendingApproval, PendingQuestion, PermissionMode, PromptQueueSnapshot, PromptSubmitResult, RuntimeSession, SessionStatus, WireSession } from './types.js';
 
 export interface HttpPort {
   get<T>(path: string, query?: Record<string, string | number | boolean | undefined>): Promise<T>;
@@ -105,6 +105,16 @@ export class KimiClient {
 
   abortSession(sessionId: string): Promise<{ aborted: boolean }> {
     return this.http.post(`/sessions/${encodeURIComponent(sessionId)}:abort`);
+  }
+
+  listPrompts(sessionId: string): Promise<PromptQueueSnapshot> {
+    return this.http.get(`/sessions/${encodeURIComponent(sessionId)}/prompts`);
+  }
+
+  abortPrompt(sessionId: string, promptId: string): Promise<{ aborted: boolean }> {
+    return this.http.post(
+      `/sessions/${encodeURIComponent(sessionId)}/prompts/${encodeURIComponent(promptId)}:abort`,
+    );
   }
 
   getConfig(): Promise<KimiServerConfig> {

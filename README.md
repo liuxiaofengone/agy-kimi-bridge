@@ -28,6 +28,8 @@ codex plugin list | rg 'kimi-delegate|codex-kimi-bridge-local'
 
 ## Development
 
+本次生命周期保护的中文说明和调用示例见 [Kimi 委派生命周期保护](docs/kimi-lifecycle-guardrails.zh-CN.md)。
+
 ```bash
 pnpm install
 pnpm test
@@ -67,13 +69,26 @@ Then use the Codex plugin normally. The bridge will discover the running server 
 
 ### Option 2: Let the bridge auto-start Kimi
 
-Keep the default `KIMI_AUTO_START=true` in the plugin env. The bridge will run:
+Keep `KIMI_AUTO_START=true` in the plugin env. This local installation configures
+`KIMI_SERVER_ARGS` as the JSON string `["web","--no-open","--port","58627"]`,
+so the first task call starts modern Kimi (including 2.1.1) with:
 
 ```bash
-kimi server run --keep-alive
+kimi web --no-open --port 58627
 ```
 
-when it first needs to call the Kimi server and no server is responding on `KIMI_SERVER_URL`.
+The process runs detached, without opening a browser or a Windows console.
+A healthy existing server is reused, and normal token authentication stays enabled.
+The spawned process receives the same resolved Kimi data home as token discovery.
+An empty KIMI_CODE_HOME therefore uses ~/.kimi-code rather than the plugin directory.
+`kimi_bridge_status` remains read-only and does not trigger startup.
+
+`KIMI_SERVER_ARGS` must be a non-empty JSON array of non-blank strings.
+Arguments go directly to the executable, without shell parsing. When this setting
+is omitted or blank, the source retains `server run --keep-alive` for older Kimi.
+Match `--port` to `KIMI_SERVER_URL` when using a custom port, and do not put
+tokens in these arguments. Set `KIMI_COMMAND` to the full executable path if
+Kimi is unavailable on the PATH inherited by Codex.
 
 ### Token handling
 
@@ -125,12 +140,12 @@ The `kimi_bridge_status` tool always performs a live check and does not use or u
 - `status`: one of `ready`, `server_unreachable`, or `auth_failed`.
 - `nextActions`: human-readable suggestions for what to do next. The messages are localized to Chinese and guide you based on the current state:
   - `ready`: indicates you can keep delegating tasks and open `webBaseUrl` or a task's `webUrl` to view the session.
-  - `server_unreachable` with `autoStart=true`: the next task call will try to auto-start the server, or you can run `kimi server run --keep-alive` manually.
+  - `server_unreachable` with `autoStart=true`: the next task call will try to auto-start the server, or you can run the configured startup command manually.
   - `server_unreachable` with `autoStart=false`: start the server manually or set `KIMI_AUTO_START=true`.
   - `auth_failed`: check `KIMI_SERVER_TOKEN` / `KIMI_CODE_HOME`, or for local smoke testing start Kimi with `--dangerous-bypass-auth`.
 - `commands` *(optional)*: an array of safe, copyable shell commands that you can run to act on the diagnosis. Any dynamic values taken from configuration (such as `kimiCommand` or `kimiCodeHome`) are shell-quoted so the commands remain valid even when those values contain spaces or quotes. Token values are never included. The array is empty or omitted in the `ready` state. For other states it may include commands such as:
-  - `server_unreachable` + `autoStart=false`: `kimi server start`
-  - `server_unreachable` + `autoStart=true`: `kimi server run --keep-alive`
+  - `server_unreachable` + `autoStart=false`: the configured startup command (legacy fallback: `kimi server start`)
+  - `server_unreachable` + `autoStart=true`: the configured startup command (here: `kimi web --no-open --port 58627`)
   - `auth_failed`: a safe check such as `test -f ~/.kimi-code/server.token && echo "token file exists" || echo "token file missing"`, or a hint when the token comes from `KIMI_SERVER_TOKEN`
   - if the bridge/plugin was just changed: `pnpm build` and `codex plugin add kimi-delegate@codex-kimi-bridge-local`
 - `diagnostics`: technical messages from the latest live checks. Token values are never included.
@@ -141,6 +156,18 @@ The `kimi_bridge_status` tool always performs a live check and does not use or u
 `kimi_bridge_status` is safe to call at any time: it does not trigger auto-start, refresh the token, or modify the success cache.
 
 The bridge accepts both legacy Kimi Session `status` responses and Kimi 0.27+ `busy` / `pending_interaction` / `last_turn_reason` responses. All lifecycle decisions use one normalized runtime status.
+
+### Prompt lifecycle safeguards
+
+- Sending to an existing session through `kimi_continue_task`, `kimi_delegate_task`, or `kimi_delegate_and_wait` rejects active/queued work with `SESSION_BUSY` by default. Use `allowQueue: true` only to deliberately enqueue a separate prompt. This is a pre-submit guard, not an atomic server lock against other clients.
+- `kimi_delegate_and_wait` tracks the returned `promptId` and includes `promptWait`. It only builds a review package once the prompt has left the queue and the session is idle with no pending prompts. Dedupe also checks the queue before accepting an idle match.
+- `kimi_wait_for_prompt({ sessionId, promptId, timeoutMs })` returns `settled`, `blocked`, or `timeout`, plus `sessionStatus` and `queueEvidence`. `settled` means the prompt is no longer pending; it does not prove successful implementation. Check the handoff and diff.
+- `kimi_wait_until_idle` also checks pending prompts where supported. A brief idle gap between queued turns does not mean the session has finished.
+- `kimi_abort` requests cancellation of the current main-agent turn only. Its compatibility field `aborted: true` means the request was accepted; `abortRequested: true`, `terminationConfirmed: false`, and `scope: "active_turn"` describe its actual scope.
+- `kimi_abort_and_wait({ sessionId, promptId?, timeoutMs })` aborts the active prompt and observes both the queue and runtime. Only `terminationConfirmed: true` confirms that neither is active at the observed point. Remaining prompts are returned as IDs; no queue is silently drained or cancelled. An explicitly targeted queued prompt returns `QUEUED_PROMPT_NOT_CANCELLABLE` without aborting another turn.
+- If the server lacks `GET /prompts` (HTTP 404/405, or a legacy not-found code after verifying the session still exists), prompt waiting degrades to session status with `queueEvidence: "unavailable"`; abort-and-wait never confirms complete termination. A prompt-specific abort is refused when its identity cannot be verified. Auth/network errors and genuinely missing sessions are not treated as missing capability.
+
+The prompt queue and abort semantics follow the [official Kimi Server API](https://github.com/MoonshotAI/kimi-code/blob/main/docs/en/reference/server-api.md#prompts). The API exposes no individual queued-prompt cancellation endpoint. A timeout leaves work running; observe the same session instead of submitting a duplicate task.
 
 `failed` is a terminal Bridge status. A failed delegate does not produce a successful `reviewPackage`; open `webUrl`, inspect the failure, and use `kimi_continue_task` to continue the same session when recovery is appropriate. `failed` and `aborted` sessions are never automatically reused by dedupe.
 

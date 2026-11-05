@@ -113,12 +113,24 @@ Use these from Codex when the plugin is loaded:
 - `kimi_find_recent_session`: find a recent Kimi session by title substring; preferred when recovering from an interruption, quota recovery, or suspected duplicate task.
 - `kimi_delegate_task`: start a Kimi task from a Codex spec/plan.
 - `kimi_delegate_and_wait`: preferred one-call flow; delegates, waits, and returns `reviewPackage` when idle. Supports an optional `dedupe` object to avoid duplicate sessions.
-- `kimi_wait_until_idle`: wait for Kimi to finish or report approval/question blocking.
+- `kimi_wait_until_idle`: wait for both runtime and pending prompts to settle, or report approval/question blocking; older servers fall back to runtime status.
+- `kimi_wait_for_prompt`: wait for a specific `promptId`; `settled` means it left the queue, not that the implementation succeeded. Inspect `sessionStatus` and `queueEvidence`.
 - `kimi_get_handoff`: summarize Kimi output, changed files, and diffs.
 - `kimi_review_package`: re-fetch a structured review package for an existing session.
 - `kimi_get_diff`: inspect a specific file diff.
 - `kimi_continue_task`: send review feedback or follow-up work to an existing Kimi session.
-- `kimi_abort`: abort a Kimi session.
+- `kimi_abort`: request cancellation of the current main-agent turn; it does not clear queued prompts or confirm session termination.
+- `kimi_abort_and_wait`: abort the active prompt and observe termination. Only `terminationConfirmed: true` confirms no active/queued prompts and a settled runtime at the observed point.
+
+### Lifecycle safety
+
+- Existing-session submission defaults to refusing active/queued work (`SESSION_BUSY`) in all delegate/continue tools. `allowQueue: true` is an explicit choice to enqueue, not a way to replace or stop the current task.
+- Prefer `kimi_delegate_and_wait` and keep its `promptId`. On timeout, observe it with `kimi_wait_for_prompt`; do not submit another task to check progress.
+- `abortRequested` only records an accepted abort request. Check `terminationConfirmed`, `activePromptId`, `queuedPromptIds`, and `queueEvidence` before handing ownership to another worker.
+- Queued prompts cannot be individually cancelled through the supported Kimi API. Do not repeatedly abort whichever turn becomes active to simulate queue clearing.
+- Missing prompt API support is reported as `queueEvidence: unavailable`; complete termination is not confirmed in that fallback.
+- P0 belongs in the consuming project's delegation rules. The bridge's P1 checks enforce a conservative default but cannot lock out other Kimi clients atomically.
+- See `docs/kimi-lifecycle-guardrails.zh-CN.md` for examples and limitations.
 
 Delegate and review tools return `webUrl`, which can be opened in Kimi Web to watch the session.
 

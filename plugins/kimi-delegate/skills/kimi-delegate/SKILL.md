@@ -12,11 +12,23 @@ Use this skill when the user wants Codex to act as planner, reviewer, and coordi
 - Codex owns spec, plan, review, verification, and final completion decisions.
 - Kimi owns implementation execution.
 - Do not implement code directly in Codex when the user has asked for Kimi execution.
-- Use `kimi_delegate_task` to send implementation tasks to Kimi.
+- Prefer `kimi_delegate_and_wait` to submit and wait for an implementation task. Keep its `sessionId` and `promptId` for follow-up observation.
 - Use `kimi_get_handoff` and `kimi_get_diff` before reviewing Kimi's work.
 - Use `kimi_continue_task` for review feedback until acceptance criteria pass.
 - Enable swarm mode only when the task has independent work items.
 - Do not auto-approve destructive commands.
+
+## Prompt lifecycle
+
+- A session can have an active prompt and queued prompts. Its transient `idle` status does not prove a particular task finished.
+- Existing-session submission in all delegate/continue tools refuses busy sessions by default with `SESSION_BUSY`. Wait for the current task; use `allowQueue: true` only when you intentionally want a separate queued task. It never replaces or stops the current task.
+- After an interrupted/timeout call, recover the existing session before creating another. When a `promptId` is known, use `kimi_wait_for_prompt`; otherwise use `kimi_wait_until_idle` and recent-session tools. A timeout leaves Kimi running.
+- `kimi_wait_for_prompt.status: settled` means the prompt left the queue. Check `sessionStatus`, `queueEvidence`, and the real handoff/diff before acceptance. `blocked` needs approval/question handling, not another continuation prompt.
+- `kimi_abort` cancels only the current main-agent turn. `aborted: true` and `abortRequested: true` do not prove the session stopped, and do not clear queued work.
+- Before transferring workspace ownership, use `kimi_abort_and_wait` and require `terminationConfirmed: true`. If false, inspect `activePromptId`, `queuedPromptIds`, `finalStatus`, and `queueEvidence`; do not start a second writer or repeatedly abort new turns.
+- Specifying a queued prompt cannot cancel it through the supported Kimi API. `QUEUED_PROMPT_NOT_CANCELLABLE` leaves the other active turn untouched.
+- Older servers without the prompt queue API return `queueEvidence: unavailable`. Abort-and-wait cannot confirm complete termination in this fallback. A supplied prompt ID is never replaced by an unverified session-wide abort.
+- Pre-submit checks are not an atomic lock against other Kimi clients. Keep one orchestrator per session and follow the consuming project's delegation rules.
 
 ## Delegation Prompt
 

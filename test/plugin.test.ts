@@ -68,6 +68,8 @@ describe('Codex plugin package', () => {
         'kimi_delegate_task',
         'kimi_delegate_and_wait',
         'kimi_review_package',
+        'kimi_wait_for_prompt',
+        'kimi_abort_and_wait',
       ]));
     } finally {
       await client.close();
@@ -94,7 +96,7 @@ describe('Codex plugin package', () => {
     });
     expect(manifest).toMatchObject({
       name: 'kimi-delegate',
-      version: '0.3.0',
+      version: expect.stringMatching(/^0\.3\.0(?:\+codex\.\d+)?$/),
       license: 'MIT',
       homepage: 'https://github.com/ximenchuifeng/codex-kimi-bridge#readme',
       repository: 'https://github.com/ximenchuifeng/codex-kimi-bridge',
