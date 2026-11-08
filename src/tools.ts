@@ -176,7 +176,29 @@ export interface DelegateAndWaitDedupeResult {
   suggestedNextActions: string[];
 }
 
+export interface KimiModelSummary {
+  id: string;
+  displayName: string;
+  provider?: string;
+  maxContextSize?: number;
+  supportEfforts?: string[];
+  defaultEffort?: string;
+  isDefault: boolean;
+}
+
+export interface ListModelsResult {
+  defaultModel?: string;
+  models: KimiModelSummary[];
+}
+
+const RATE_LIMIT_PATTERN = /\b429\b|rate[ _-]?limit|too many requests|限流|quota exceeded|exceeded.*quota/i;
+
+export function looksRateLimited(text: string): boolean {
+  return RATE_LIMIT_PATTERN.test(text);
+}
+
 export interface DelegateAndWaitDiagnostics {
+  rateLimited?: boolean;
   recentMessages: Array<{ role: string; content: string }>;
   lastAssistantMessage: string;
   suggestedNextActions: string[];
@@ -224,6 +246,7 @@ export interface ToolHandlers {
   kimi_abort: (input: AbortInput) => Promise<{ sessionId: string; aborted: true; abortRequested: true; terminationConfirmed: false; scope: 'active_turn' }>;
   kimi_abort_and_wait: (input: AbortAndWaitInput) => Promise<AbortAndWaitResult>;
   kimi_bridge_status: () => Promise<BridgeStatus>;
+  kimi_list_models: () => Promise<ListModelsResult>;
   kimi_recent_sessions: (input: RecentSessionsInput) => Promise<RecentSessionsResult>;
   kimi_find_recent_session: (input: FindRecentSessionInput) => Promise<FindRecentSessionResult>;
 }
@@ -583,7 +606,14 @@ async function buildDelegateAndWaitDiagnostics(
     messageError = sanitizeDiagnosticText(rawError, serverToken);
   }
 
-  const suggestedNextActions = status === 'timeout'
+  const rateLimited = status !== 'timeout' && recentMessages.some((message) => looksRateLimited(message.content));
+  const suggestedNextActions = rateLimited
+    ? [
+        '该回合疑似因模型限流（429）失败。先确认没有活动或排队的 prompt（必要时调用 kimi_abort_and_wait 并检查 terminationConfirmed）。',
+        '调用 kimi_list_models 让用户选择另一个模型，再用 kimi_continue_task(sessionId, model=新模型) 在同一 session 继续；不要新开 session 重做。',
+        `webUrl: ${webUrl}`,
+      ]
+    : status === 'timeout'
     ? [
         'wait 状态为 timeout，可继续调用 kimi_wait_until_idle 等待同一 session。',
         `或在浏览器中打开 webUrl ${webUrl} 查看实时进度。`,
@@ -601,6 +631,7 @@ async function buildDelegateAndWaitDiagnostics(
         ];
 
   return {
+    ...(rateLimited ? { rateLimited } : {}),
     recentMessages,
     lastAssistantMessage,
     suggestedNextActions,
@@ -643,14 +674,31 @@ export function createToolHandlers(deps: ToolDeps): ToolHandlers {
     submissionsInFlight.set(sessionId, (submissionsInFlight.get(sessionId) ?? 0) + 1);
     try {
       if (checkExisting) await assertSessionCanAcceptPrompt(deps.kimi, sessionId, input.allowQueue);
-      return await deps.kimi.submitPrompt(sessionId, {
-        content,
-        model: await resolveModel(deps.kimi, input.model, deps.config),
-        thinking: input.thinking ?? deps.config.defaultThinking,
-        permissionMode: deps.config.defaultPermissionMode,
-        planMode: false,
-        swarmMode: input.swarmMode,
-      });
+      const model = await resolveModel(deps.kimi, input.model, deps.config);
+      try {
+        return await deps.kimi.submitPrompt(sessionId, {
+          content,
+          model,
+          thinking: input.thinking ?? deps.config.defaultThinking,
+          permissionMode: deps.config.defaultPermissionMode,
+          planMode: false,
+          swarmMode: input.swarmMode,
+        });
+      } catch (error) {
+        if (error instanceof KimiApiError && (error.httpStatus === 429 || looksRateLimited(error.message))) {
+          throw new BridgeToolError('KIMI_RATE_LIMITED', `Kimi rejected the prompt because model ${model} is rate limited.`, {
+            sessionId,
+            model,
+            submissionState: 'not_submitted',
+            requestId: error.requestId,
+            nextActions: [
+              '调用 kimi_list_models，让用户选择另一个模型。',
+              '用 kimi_continue_task(sessionId, model=新模型) 重新提交同一任务；该 prompt 未被接受，不会重复执行。',
+            ],
+          });
+        }
+        throw error;
+      }
     } finally {
       const remaining = (submissionsInFlight.get(sessionId) ?? 1) - 1;
       if (remaining === 0) submissionsInFlight.delete(sessionId);
@@ -790,6 +838,21 @@ export function createToolHandlers(deps: ToolDeps): ToolHandlers {
           diagnostics: [...status.diagnostics, 'meta unavailable'],
         };
       }
+    },
+
+    async kimi_list_models() {
+      const config = await deps.kimi.getConfig();
+      const defaultModel = deps.config.defaultModel ?? (config.default_model?.trim() || undefined);
+      const models = Object.entries(config.models ?? {}).map(([id, model]) => ({
+        id,
+        displayName: typeof model.displayName === 'string' && model.displayName ? model.displayName : id,
+        ...(typeof model.provider === 'string' ? { provider: model.provider } : {}),
+        ...(typeof model.maxContextSize === 'number' ? { maxContextSize: model.maxContextSize } : {}),
+        ...(Array.isArray(model.supportEfforts) ? { supportEfforts: model.supportEfforts } : {}),
+        ...(typeof model.defaultEffort === 'string' ? { defaultEffort: model.defaultEffort } : {}),
+        isDefault: id === defaultModel,
+      }));
+      return { ...(defaultModel ? { defaultModel } : {}), models };
     },
 
     async kimi_recent_sessions(input: RecentSessionsInput) {
@@ -1274,6 +1337,7 @@ export function createToolHandlers(deps: ToolDeps): ToolHandlers {
     kimi_abort: withPreflight(deps.preflight, handlers.kimi_abort),
     kimi_abort_and_wait: withPreflight(deps.preflight, handlers.kimi_abort_and_wait),
     kimi_recent_sessions: withPreflight(deps.preflight, handlers.kimi_recent_sessions),
+    kimi_list_models: withPreflight(deps.preflight, handlers.kimi_list_models),
     kimi_find_recent_session: withPreflight(deps.preflight, handlers.kimi_find_recent_session),
   };
 }

@@ -114,6 +114,7 @@ Use these from Codex when the plugin is loaded:
 
 - `kimi_bridge_status`: live read-only diagnostics; does not auto-start, refresh token, or update cache.
 - `kimi_recent_sessions`: list recent Kimi sessions; use this first when a previous delegate was interrupted or you suspect a duplicate/running/aborted session.
+- `kimi_list_models`: list models configured in the Kimi server (id, displayName, context size, efforts, default). Use once before the first delegation in a chat so the user can pick a model; pass that `model` explicitly afterwards. Ask again only after `KIMI_RATE_LIMITED` (prompt not submitted; resubmit with `kimi_continue_task` and the new model) or `diagnostics.rateLimited: true` (turn started then hit 429; confirm it stopped, then continue the same session with the new model).
 - `kimi_find_recent_session`: find a recent Kimi session by title substring; preferred when recovering from an interruption, quota recovery, or suspected duplicate task.
 - `kimi_delegate_task`: start a Kimi task from a Codex spec/plan.
 - `kimi_delegate_and_wait`: preferred one-call flow; delegates, waits, and returns `reviewPackage` when idle. Supports an optional `dedupe` object to avoid duplicate sessions.

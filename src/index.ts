@@ -220,6 +220,13 @@ export async function main(): Promise<void> {
   );
 
   server.tool(
+    'kimi_list_models',
+    'List models configured in the local Kimi server (id, displayName, context size, efforts, default). Use before the first delegation so the user can pick a model, and again after KIMI_RATE_LIMITED or diagnostics.rateLimited.',
+    {},
+    async () => runToolHandler(() => handlers.kimi_list_models()),
+  );
+
+  server.tool(
     'kimi_recent_sessions',
     {
       pageSize: z.number().optional(),

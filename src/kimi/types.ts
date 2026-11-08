@@ -64,8 +64,20 @@ export interface KimiServerMeta {
   backend?: string;
 }
 
+export interface KimiModelConfig {
+  provider?: string;
+  model?: string;
+  displayName?: string;
+  maxContextSize?: number;
+  capabilities?: string[];
+  supportEfforts?: string[];
+  defaultEffort?: string;
+  [key: string]: unknown;
+}
+
 export interface KimiServerConfig {
   default_model?: string;
+  models?: Record<string, KimiModelConfig>;
 }
 
 export interface PendingApproval {

@@ -22219,6 +22219,10 @@ async function expandGitStatusEntries(input) {
 // src/tools.ts
 import { readdir as readdir2, realpath as realpath2 } from "node:fs/promises";
 import path2 from "node:path";
+var RATE_LIMIT_PATTERN = /\b429\b|rate[ _-]?limit|too many requests|限流|quota exceeded|exceeded.*quota/i;
+function looksRateLimited(text) {
+  return RATE_LIMIT_PATTERN.test(text);
+}
 async function promptQueueUnsupported(error2, kimi, sessionId) {
   if (!(error2 instanceof KimiApiError)) return false;
   if (error2.code === 40401) {
@@ -22498,7 +22502,12 @@ async function buildDelegateAndWaitDiagnostics(kimi, sessionId, status, webUrl, 
     const rawError = err instanceof Error ? err.message : String(err);
     messageError = sanitizeDiagnosticText(rawError, serverToken);
   }
-  const suggestedNextActions = status === "timeout" ? [
+  const rateLimited = status !== "timeout" && recentMessages.some((message) => looksRateLimited(message.content));
+  const suggestedNextActions = rateLimited ? [
+    "\u8BE5\u56DE\u5408\u7591\u4F3C\u56E0\u6A21\u578B\u9650\u6D41\uFF08429\uFF09\u5931\u8D25\u3002\u5148\u786E\u8BA4\u6CA1\u6709\u6D3B\u52A8\u6216\u6392\u961F\u7684 prompt\uFF08\u5FC5\u8981\u65F6\u8C03\u7528 kimi_abort_and_wait \u5E76\u68C0\u67E5 terminationConfirmed\uFF09\u3002",
+    "\u8C03\u7528 kimi_list_models \u8BA9\u7528\u6237\u9009\u62E9\u53E6\u4E00\u4E2A\u6A21\u578B\uFF0C\u518D\u7528 kimi_continue_task(sessionId, model=\u65B0\u6A21\u578B) \u5728\u540C\u4E00 session \u7EE7\u7EED\uFF1B\u4E0D\u8981\u65B0\u5F00 session \u91CD\u505A\u3002",
+    `webUrl: ${webUrl}`
+  ] : status === "timeout" ? [
     "wait \u72B6\u6001\u4E3A timeout\uFF0C\u53EF\u7EE7\u7EED\u8C03\u7528 kimi_wait_until_idle \u7B49\u5F85\u540C\u4E00 session\u3002",
     `\u6216\u5728\u6D4F\u89C8\u5668\u4E2D\u6253\u5F00 webUrl ${webUrl} \u67E5\u770B\u5B9E\u65F6\u8FDB\u5EA6\u3002`
   ] : status === "failed" ? [
@@ -22511,6 +22520,7 @@ async function buildDelegateAndWaitDiagnostics(kimi, sessionId, status, webUrl, 
     "\u5FC5\u8981\u65F6\u4F7F\u7528 kimi_continue_task \u91CD\u8BD5\u6216\u8865\u5145\u6307\u4EE4\u3002"
   ];
   return {
+    ...rateLimited ? { rateLimited } : {},
     recentMessages,
     lastAssistantMessage,
     suggestedNextActions,
@@ -22545,14 +22555,31 @@ function createToolHandlers(deps) {
     submissionsInFlight.set(sessionId, (submissionsInFlight.get(sessionId) ?? 0) + 1);
     try {
       if (checkExisting) await assertSessionCanAcceptPrompt(deps.kimi, sessionId, input.allowQueue);
-      return await deps.kimi.submitPrompt(sessionId, {
-        content,
-        model: await resolveModel(deps.kimi, input.model, deps.config),
-        thinking: input.thinking ?? deps.config.defaultThinking,
-        permissionMode: deps.config.defaultPermissionMode,
-        planMode: false,
-        swarmMode: input.swarmMode
-      });
+      const model = await resolveModel(deps.kimi, input.model, deps.config);
+      try {
+        return await deps.kimi.submitPrompt(sessionId, {
+          content,
+          model,
+          thinking: input.thinking ?? deps.config.defaultThinking,
+          permissionMode: deps.config.defaultPermissionMode,
+          planMode: false,
+          swarmMode: input.swarmMode
+        });
+      } catch (error2) {
+        if (error2 instanceof KimiApiError && (error2.httpStatus === 429 || looksRateLimited(error2.message))) {
+          throw new BridgeToolError("KIMI_RATE_LIMITED", `Kimi rejected the prompt because model ${model} is rate limited.`, {
+            sessionId,
+            model,
+            submissionState: "not_submitted",
+            requestId: error2.requestId,
+            nextActions: [
+              "\u8C03\u7528 kimi_list_models\uFF0C\u8BA9\u7528\u6237\u9009\u62E9\u53E6\u4E00\u4E2A\u6A21\u578B\u3002",
+              "\u7528 kimi_continue_task(sessionId, model=\u65B0\u6A21\u578B) \u91CD\u65B0\u63D0\u4EA4\u540C\u4E00\u4EFB\u52A1\uFF1B\u8BE5 prompt \u672A\u88AB\u63A5\u53D7\uFF0C\u4E0D\u4F1A\u91CD\u590D\u6267\u884C\u3002"
+            ]
+          });
+        }
+        throw error2;
+      }
     } finally {
       const remaining = (submissionsInFlight.get(sessionId) ?? 1) - 1;
       if (remaining === 0) submissionsInFlight.delete(sessionId);
@@ -22676,6 +22703,20 @@ function createToolHandlers(deps) {
           diagnostics: [...status.diagnostics, "meta unavailable"]
         };
       }
+    },
+    async kimi_list_models() {
+      const config2 = await deps.kimi.getConfig();
+      const defaultModel = deps.config.defaultModel ?? (config2.default_model?.trim() || void 0);
+      const models = Object.entries(config2.models ?? {}).map(([id, model]) => ({
+        id,
+        displayName: typeof model.displayName === "string" && model.displayName ? model.displayName : id,
+        ...typeof model.provider === "string" ? { provider: model.provider } : {},
+        ...typeof model.maxContextSize === "number" ? { maxContextSize: model.maxContextSize } : {},
+        ...Array.isArray(model.supportEfforts) ? { supportEfforts: model.supportEfforts } : {},
+        ...typeof model.defaultEffort === "string" ? { defaultEffort: model.defaultEffort } : {},
+        isDefault: id === defaultModel
+      }));
+      return { ...defaultModel ? { defaultModel } : {}, models };
     },
     async kimi_recent_sessions(input) {
       const result = await deps.kimi.listSessions({
@@ -23118,6 +23159,7 @@ function createToolHandlers(deps) {
     kimi_abort: withPreflight(deps.preflight, handlers.kimi_abort),
     kimi_abort_and_wait: withPreflight(deps.preflight, handlers.kimi_abort_and_wait),
     kimi_recent_sessions: withPreflight(deps.preflight, handlers.kimi_recent_sessions),
+    kimi_list_models: withPreflight(deps.preflight, handlers.kimi_list_models),
     kimi_find_recent_session: withPreflight(deps.preflight, handlers.kimi_find_recent_session)
   };
 }
@@ -23772,6 +23814,12 @@ async function main() {
     "kimi_bridge_status",
     {},
     async () => runToolHandler(() => handlers.kimi_bridge_status())
+  );
+  server.tool(
+    "kimi_list_models",
+    "List models configured in the local Kimi server (id, displayName, context size, efforts, default). Use before the first delegation so the user can pick a model, and again after KIMI_RATE_LIMITED or diagnostics.rateLimited.",
+    {},
+    async () => runToolHandler(() => handlers.kimi_list_models())
   );
   server.tool(
     "kimi_recent_sessions",
