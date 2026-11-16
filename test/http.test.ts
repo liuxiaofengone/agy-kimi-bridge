@@ -107,7 +107,7 @@ describe('KimiHttpClient', () => {
       expect(headers['content-type']).toBe('application/json');
     });
 
-    it('returns a Codex-friendly error on 401 Unauthorized', async () => {
+    it('returns a host-friendly error on 401 Unauthorized', async () => {
       const fetchImpl = vi.fn(async () => new Response(JSON.stringify({
         code: 40101,
         msg: 'auth required',

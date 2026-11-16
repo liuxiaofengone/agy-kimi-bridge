@@ -3027,7 +3027,7 @@ describe('tool handlers', () => {
         cwd: '/repo',
         title: 'implement x',
         metadata: {
-          codex_kimi_bridge: {
+          agy_kimi_bridge: {
             schema_version: 1,
             base_commit: 'a'.repeat(40),
             base_branch: 'main',
@@ -3040,7 +3040,7 @@ describe('tool handlers', () => {
     it('caps initial_dirty_paths in session metadata while keeping the full baseline', async () => {
       const paths = Array.from({ length: 1001 }, (_, index) => `dirty/f${index}.ts`);
       const createSession = vi.fn(async (_input: {
-        metadata?: { codex_kimi_bridge?: Record<string, unknown> };
+        metadata?: { agy_kimi_bridge?: Record<string, unknown> };
       }) => ({ id: 's1' }));
       const gitInspector = makeGitInspector({
         available: true,
@@ -3060,7 +3060,7 @@ describe('tool handlers', () => {
         plan: ['edit code'],
       });
 
-      const bridge = createSession.mock.calls[0][0].metadata?.codex_kimi_bridge;
+      const bridge = createSession.mock.calls[0][0].metadata?.agy_kimi_bridge;
       expect(bridge?.initial_dirty_paths).toEqual(paths.slice(0, MAX_SESSION_DIRTY_PATHS));
       expect(bridge?.initial_dirty_paths_truncated).toBe(true);
     });

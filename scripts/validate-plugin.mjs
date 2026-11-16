@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Portable Codex plugin package validator for this repository.
+// Portable Antigravity plugin package validator for this repository.
 // Runs on Node >= 20 with no third-party dependencies and no machine-specific
 // paths, so a fresh clone can validate the plugin on any platform:
 //
@@ -7,33 +7,19 @@
 //
 // Exits 0 when the package is well-formed; exits 1 and prints every detected
 // problem otherwise.
-//
-// Trust boundary: every path that is read or accepted (manifest, skill files,
-// MCP config, server cwd, bundle) goes through the same two guards:
-//   1. plugin-relative + lexical containment inside the plugin root, and
-//   2. realpath containment, so symlinks/junctions cannot smuggle in targets
-//      outside the root.
-// Problems are reported with fixed messages that never echo file contents or
-// underlying error text, so neither configuration secrets nor tokens can leak
-// through validation output.
 
-import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { isAbsolute, join, resolve, sep } from 'node:path';
 
 const problems = [];
 const fail = (message) => problems.push(message);
 
-// Full SemVer 2.0.0: numeric identifiers without leading zeros, non-empty
-// dot-separated prerelease/build identifiers, prerelease and build may coexist.
 const SEMVER_RE = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/;
 
 function fileType(stat) {
   return stat.isDirectory() ? 'directory' : stat.isFile() ? 'file' : 'non-regular file';
 }
 
-// Parse JSON without ever surfacing input content: error messages from
-// JSON.parse can quote the offending token (including secrets), so only a
-// fixed description plus the byte position is reported.
 function readJsonSecure(file, label) {
   let text;
   try {
@@ -41,6 +27,9 @@ function readJsonSecure(file, label) {
   } catch {
     fail(`${label}: cannot read file`);
     return { text: undefined, value: undefined };
+  }
+  if (text.charCodeAt(0) === 0xfeff) {
+    fail(`${label}: starts with a UTF-8 byte order mark`);
   }
   try {
     return { text, value: JSON.parse(text) };
@@ -51,11 +40,6 @@ function readJsonSecure(file, label) {
   }
 }
 
-// Central guard #2: the real target of `target` must exist, must stay inside
-// the plugin root (symlink/junction escape rejection), and must have the
-// expected file type. Returns { real, stat } or undefined after recording a
-// failure. A failed guard always records a problem — an escaped link is never
-// silently skipped just because other valid entries exist.
 function guardRealTarget(rootReal, label, target, { expectDir = false } = {}) {
   let real;
   try {
@@ -86,19 +70,25 @@ function guardRealTarget(rootReal, label, target, { expectDir = false } = {}) {
   return { real, stat };
 }
 
-// Central guard #1: a plugin-relative path must resolve lexically inside the
-// plugin root. Absolute paths are rejected outright — pointing back into the
-// same checkout is still not a portable, plugin-relative reference.
-function guardPluginRelative(pluginRoot, label, value) {
+function expandPluginRoot(value) {
+  if (value === '${PLUGIN_ROOT}') return '.';
+  if (value.startsWith('${PLUGIN_ROOT}/') || value.startsWith('${PLUGIN_ROOT}\\')) {
+    return './' + value.slice('${PLUGIN_ROOT}/'.length);
+  }
+  return value;
+}
+
+function guardPluginRelative(pluginRoot, label, value, { allowPluginRootMacro = false } = {}) {
   if (typeof value !== 'string' || value.length === 0) {
     fail(`${label}: must be a non-empty plugin-relative string`);
     return undefined;
   }
-  if (isAbsolute(value)) {
+  const normalized = allowPluginRootMacro ? expandPluginRoot(value) : value;
+  if (isAbsolute(normalized)) {
     fail(`${label}: must be plugin-relative, not absolute: ${value}`);
     return undefined;
   }
-  const resolved = resolve(pluginRoot, value);
+  const resolved = resolve(pluginRoot, normalized);
   if (resolved !== pluginRoot && !resolved.startsWith(pluginRoot + sep)) {
     fail(`${label}: escapes the plugin root: ${value}`);
     return undefined;
@@ -110,16 +100,10 @@ function scanMachineSpecific(text, label) {
   if (text.includes('/Users/')) fail(`${label}: contains a macOS user directory path`);
   if (/[A-Za-z]:[\\/]+Users[\\/]/.test(text)) fail(`${label}: contains a Windows user directory path`);
   if (text.includes('Authorization: Bearer')) fail(`${label}: contains an Authorization bearer header`);
-  // Allow the bundle's own token-redaction regex literal and its replacement
-  // string; anything else carrying a token query is a leak.
   const sanitized = text.split('/#token=[^\\s]+/gi').join('').split('#token=[redacted]').join('');
   if (sanitized.includes('#token=')) fail(`${label}: contains a token-bearing URL`);
 }
 
-// Walk the skill tree, guarding every directory and every recognized
-// SKILL.md with the same realpath containment rules. Symlinked directories
-// inside the tree are followed only when their real target stays in the root;
-// an escape is a hard failure, not an ignore.
 function collectSkillFiles(rootReal, dir, label, depth, found) {
   const dirInfo = guardRealTarget(rootReal, `${label}: directory`, dir, { expectDir: true });
   if (!dirInfo) return found;
@@ -133,7 +117,6 @@ function collectSkillFiles(rootReal, dir, label, depth, found) {
   for (const entry of entries) {
     const full = join(dir, entry.name);
     if (entry.isSymbolicLink()) {
-      // Resolve the link target first: escapes fail here, before any read.
       const info = guardRealTarget(rootReal, `${label}: ${full}`, full);
       if (!info) continue;
       if (info.stat.isDirectory()) {
@@ -178,17 +161,12 @@ function validate(pluginRootArg) {
     return;
   }
 
-  // 1. Manifest: plugin-relative location, real target inside the root, and
-  //    the fields Codex needs to install and display the plugin.
-  const manifestPath = join(pluginRoot, '.codex-plugin', 'plugin.json');
+  // 1. Antigravity plugin manifest at plugin root.
+  const manifestPath = join(pluginRoot, 'plugin.json');
   const manifestInfo = guardRealTarget(rootReal, 'plugin manifest', manifestPath);
   if (!manifestInfo) return;
   const { text: manifestText, value: manifest } = readJsonSecure(manifestInfo.real, 'plugin manifest');
   if (manifestText !== undefined) scanMachineSpecific(manifestText, 'plugin manifest');
-  // Root type gate: valid JSON of the wrong shape (null, a number, a string,
-  // false, or an array) must fail with a fixed message, never exit 0. Field
-  // checks below still run against an empty object so every schema problem is
-  // reported in one pass.
   if (manifest === null || typeof manifest !== 'object' || Array.isArray(manifest)) {
     fail('plugin manifest: root value must be a non-null, non-array JSON object');
   }
@@ -200,39 +178,24 @@ function validate(pluginRootArg) {
   if (typeof manifestObject.version !== 'string' || !SEMVER_RE.test(manifestObject.version)) {
     fail('manifest: version must be a full semantic version, got ' + JSON.stringify(manifestObject.version));
   }
-  if (typeof manifestObject.author?.name !== 'string' || manifestObject.author.name.length === 0) fail('manifest: author.name is required');
-  if (typeof manifestObject.interface?.developerName !== 'string' || manifestObject.interface.developerName.length === 0) {
-    fail('manifest: interface.developerName is required');
+  if (typeof manifestObject.description !== 'string' || manifestObject.description.length === 0) {
+    fail('manifest: description is required');
   }
+  if (typeof manifestObject.author?.name !== 'string' || manifestObject.author.name.length === 0) fail('manifest: author.name is required');
   if (typeof manifestObject.license !== 'string' || manifestObject.license.length === 0) fail('manifest: license is required');
-  if (typeof manifestObject.homepage !== 'string' || manifestObject.homepage.length === 0) fail('manifest: homepage is required');
   if (typeof manifestObject.repository !== 'string' || manifestObject.repository.length === 0) fail('manifest: repository is required');
 
-  // 2. Skills: plugin-relative path whose real directory target stays in the
-  //    root, with at least one guarded SKILL.md.
-  let mcpConfigPath;
-  if (manifestObject.skills !== undefined) {
-    const skillsDir = guardPluginRelative(pluginRoot, 'manifest: skills', manifestObject.skills);
-    if (skillsDir) {
-      if (guardRealTarget(rootReal, 'manifest: skills', skillsDir, { expectDir: true })) {
-        const skillFiles = collectSkillFiles(rootReal, skillsDir, 'skills tree', 0, []);
-        if (skillFiles.length === 0) {
-          fail('manifest: no SKILL.md found under the skills path');
-        }
-      }
+  // 2. Standard Antigravity skills/ directory.
+  const skillsDir = join(pluginRoot, 'skills');
+  if (guardRealTarget(rootReal, 'skills directory', skillsDir, { expectDir: true })) {
+    const skillFiles = collectSkillFiles(rootReal, skillsDir, 'skills tree', 0, []);
+    if (skillFiles.length === 0) {
+      fail('skills: no SKILL.md found under skills/');
     }
-  } else {
-    fail('manifest: skills must be a plugin-relative path');
   }
 
-  // 3. MCP config: same two guards, then per-server packaging rules.
-  if (manifestObject.mcpServers !== undefined) {
-    mcpConfigPath = guardPluginRelative(pluginRoot, 'manifest: mcpServers', manifestObject.mcpServers);
-  } else {
-    fail('manifest: mcpServers must be a plugin-relative path');
-  }
-
-  if (!mcpConfigPath) return;
+  // 3. Antigravity mcp_config.json at plugin root.
+  const mcpConfigPath = join(pluginRoot, 'mcp_config.json');
   const mcpInfo = guardRealTarget(rootReal, 'mcp config', mcpConfigPath);
   if (!mcpInfo) return;
   const { text: mcpText, value: mcpConfig } = readJsonSecure(mcpInfo.real, 'mcp config');
@@ -262,12 +225,12 @@ function validate(pluginRootArg) {
       fail(`mcp config: server ${serverName} must declare bundle args`);
       continue;
     }
-    // cwd must be a plugin-relative directory when present; an absolute path
-    // keeps working only on the machine that produced it, so it is refused
-    // even when it happens to point inside this checkout.
+    if (server.timeoutSeconds !== undefined && (typeof server.timeoutSeconds !== 'number' || !Number.isFinite(server.timeoutSeconds))) {
+      fail(`mcp config: server ${serverName} timeoutSeconds must be a finite number`);
+    }
     let serverCwd = pluginRoot;
     if (server.cwd !== undefined) {
-      const guardedCwd = guardPluginRelative(pluginRoot, `mcp config: server ${serverName} cwd`, server.cwd);
+      const guardedCwd = guardPluginRelative(pluginRoot, `mcp config: server ${serverName} cwd`, server.cwd, { allowPluginRootMacro: true });
       if (guardedCwd) {
         if (guardRealTarget(rootReal, `mcp config: server ${serverName} cwd`, guardedCwd, { expectDir: true })) {
           serverCwd = guardedCwd;
@@ -275,11 +238,19 @@ function validate(pluginRootArg) {
       }
     }
     for (const arg of server.args) {
-      if (typeof arg !== 'string' || isAbsolute(arg)) {
+      if (typeof arg !== 'string') {
         fail(`mcp config: server ${serverName} arg must be plugin-relative, got ${JSON.stringify(arg)}`);
         continue;
       }
-      const bundlePath = resolve(serverCwd, arg);
+      const expandedArg = expandPluginRoot(arg);
+      if (isAbsolute(expandedArg)) {
+        fail(`mcp config: server ${serverName} arg must be plugin-relative, got ${JSON.stringify(arg)}`);
+        continue;
+      }
+      const baseDir = arg === '${PLUGIN_ROOT}' || arg.startsWith('${PLUGIN_ROOT}/') || arg.startsWith('${PLUGIN_ROOT}\\')
+        ? pluginRoot
+        : serverCwd;
+      const bundlePath = resolve(baseDir, expandedArg);
       if (bundlePath !== pluginRoot && !bundlePath.startsWith(pluginRoot + sep)) {
         fail(`mcp config: server ${serverName} arg escapes the plugin root: ${arg}`);
         continue;
@@ -292,9 +263,6 @@ function validate(pluginRootArg) {
         scanMachineSpecific(readFileSync(bundleInfo.real, 'utf8'), `bundle ${arg}`);
       }
     }
-    // env, when present, must be a non-null, non-array object whose values
-    // are all strings; token-like keys must stay empty. Type failures use
-    // fixed messages that never echo the offending value.
     if (server.env !== undefined) {
       if (server.env === null || typeof server.env !== 'object' || Array.isArray(server.env)) {
         fail(`mcp config: server ${serverName} env must be a non-null, non-array object`);

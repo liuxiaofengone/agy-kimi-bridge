@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildDelegationPrompt } from '../src/prompt.js';
 
 describe('buildDelegationPrompt', () => {
-  it('includes Codex/Kimi roles and handoff contract', () => {
+  it('includes Antigravity/Kimi roles and handoff contract', () => {
     const prompt = buildDelegationPrompt({
       task: 'Add a health check endpoint.',
       acceptanceCriteria: ['GET /health returns ok'],
@@ -10,7 +10,7 @@ describe('buildDelegationPrompt', () => {
       swarmSuggestions: ['API route', 'test coverage'],
     });
 
-    expect(prompt).toContain('Codex is the coordinator and reviewer');
+    expect(prompt).toContain('Antigravity is the coordinator and reviewer');
     expect(prompt).toContain('Add a health check endpoint.');
     expect(prompt).toContain('GET /health returns ok');
     expect(prompt).toContain('If the work has independent parts, use AgentSwarm');

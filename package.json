@@ -1,5 +1,5 @@
 {
-  "name": "codex-kimi-bridge",
+  "name": "agy-kimi-bridge",
   "version": "0.3.0",
   "private": true,
   "type": "module",
@@ -7,14 +7,14 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ximenchuifeng/codex-kimi-bridge.git"
+    "url": "git+https://github.com/liuxiaofengone/agy-kimi-bridge.git"
   },
-  "homepage": "https://github.com/ximenchuifeng/codex-kimi-bridge#readme",
+  "homepage": "https://github.com/liuxiaofengone/agy-kimi-bridge#readme",
   "engines": {
     "node": ">=20"
   },
   "bin": {
-    "codex-kimi-bridge": "dist/index.js"
+    "agy-kimi-bridge": "dist/index.js"
   },
   "scripts": {
     "build:core": "tsc -p tsconfig.json",

@@ -23,7 +23,7 @@ export function buildContinuationPrompt(input: ContinuePromptInput): string {
       ? list(input.swarmSuggestions)
       : '- Use your judgment; avoid AgentSwarm for small or tightly coupled changes.';
 
-  return `This is a follow-up to a delegated task in session ${input.sessionId}. Codex has reviewed the work and is providing additional feedback.
+  return `This is a follow-up to a delegated task in session ${input.sessionId}. Antigravity has reviewed the work and is providing additional feedback.
 
 Implement the requested changes in this repository. Do not change unrelated files.
 
@@ -33,7 +33,7 @@ ${input.task}
 Acceptance criteria:
 ${list(input.acceptanceCriteria)}
 
-Plan from Codex:
+Plan from Antigravity:
 ${list(input.plan)}
 
 Parallelization:
@@ -46,7 +46,7 @@ When complete, return a handoff with:
 - commands run
 - tests run and results
 - risks or incomplete items
-- anything requiring Codex review
+- anything requiring Antigravity review
 `;
 }
 
@@ -56,7 +56,7 @@ export function buildDelegationPrompt(input: DelegationPromptInput): string {
       ? list(input.swarmSuggestions)
       : '- Use your judgment; avoid AgentSwarm for small or tightly coupled changes.';
 
-  return `You are the implementation worker. Codex is the coordinator and reviewer.
+  return `You are the implementation worker. Antigravity is the coordinator and reviewer.
 
 Implement the requested work in this repository. Do not change unrelated files.
 
@@ -66,7 +66,7 @@ ${input.task}
 Acceptance criteria:
 ${list(input.acceptanceCriteria)}
 
-Plan from Codex:
+Plan from Antigravity:
 ${list(input.plan)}
 
 Parallelization:
@@ -79,6 +79,6 @@ When complete, return a handoff with:
 - commands run
 - tests run and results
 - risks or incomplete items
-- anything requiring Codex review
+- anything requiring Antigravity review
 `;
 }

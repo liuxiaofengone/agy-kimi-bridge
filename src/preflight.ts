@@ -275,7 +275,7 @@ export class KimiPreflight {
     // If the bridge code or plugin config was just changed, rebuilding and reinstalling
     // the local plugin is a safe next step before trying again.
     commands.push('pnpm build');
-    commands.push('codex plugin add kimi-delegate@codex-kimi-bridge-local');
+    commands.push('agy plugin install ./plugins/kimi-delegate');
 
     return commands;
   }

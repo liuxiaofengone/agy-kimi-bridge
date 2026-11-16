@@ -2,7 +2,7 @@
 
 ## Project
 
-`codex-kimi-bridge` is a local Codex plugin plus MCP bridge. Its purpose is to let Codex act as planner/reviewer while Kimi Code performs implementation through the local Kimi server.
+`agy-kimi-bridge` is a local Antigravity plugin plus MCP bridge (ported from `codex-kimi-bridge`). Its purpose is to let Antigravity act as planner/reviewer while Kimi Code performs implementation through the local Kimi server.
 
 Default workspace: the repository checkout containing this file (clone it
 wherever you work; nothing in the build or tests depends on an absolute path).
@@ -15,12 +15,12 @@ machine-specific and is not required for bridge development.
 
 The preferred workflow is:
 
-1. Codex writes the spec and plan.
-2. Codex delegates implementation to Kimi through `kimi_delegate_and_wait`.
+1. Antigravity writes the spec and plan.
+2. Antigravity delegates implementation to Kimi through `kimi_delegate_and_wait`.
 3. Kimi changes code and runs verification.
-4. Codex reviews the embedded `reviewPackage`, independently verifies, and either accepts or sends follow-up feedback.
+4. Antigravity reviews the embedded `reviewPackage`, independently verifies, and either accepts or sends follow-up feedback.
 
-Do not manually implement feature work in Codex when the user says execution should happen in Kimi. Codex may still do small local maintenance tasks when explicitly asked, such as reinstalling the plugin, committing already-reviewed work, or writing this file.
+Do not manually implement feature work in Antigravity (or substitute native `invoke_subagent` / `swarm`) when the user says execution should happen in Kimi. Antigravity may still do small local maintenance tasks when explicitly asked, such as reinstalling the plugin, committing already-reviewed work, or writing this file.
 
 Reusable prompt templates live in:
 
@@ -30,43 +30,43 @@ docs/prompts/kimi-delegate-workflow.md
 
 ## Current Plugin State
 
-Local marketplace (repo-relative):
+Plugin manifest:
 
 ```text
-.agents/plugins/marketplace.json
+plugins/kimi-delegate/plugin.json
 ```
 
-Plugin id:
+Plugin id / directory name:
 
 ```text
-kimi-delegate@codex-kimi-bridge-local
+kimi-delegate
 ```
 
 MCP config:
 
 ```text
-plugins/kimi-delegate/.mcp.json
+plugins/kimi-delegate/mcp_config.json
 ```
 
 The plugin MCP server currently launches:
 
 ```text
-node ./mcp/server.mjs
+node ${PLUGIN_ROOT}/mcp/server.mjs
 ```
 
 After code changes that affect MCP tools or plugin config, run:
 
 ```bash
 pnpm build
-codex plugin add kimi-delegate@codex-kimi-bridge-local
+agy plugin validate ./plugins/kimi-delegate --strict
+agy plugin install ./plugins/kimi-delegate
 ```
 
-Then open a new Codex thread or restart Codex if the tool list does not refresh.
+On Windows, if the repository checkout sits under a directory junction (which can cause `agy plugin install` to fail with path/rename errors), copy `plugins/kimi-delegate` directly to `~/.gemini/config/plugins/kimi-delegate`. Then open a new Antigravity chat if the MCP tool list does not refresh.
 
 - `plugins/kimi-delegate/mcp/server.mjs` is a tracked generated artifact.
 - Source changes affecting MCP runtime require `pnpm build` and committing the regenerated bundle.
 - Fresh clone installation does not require pnpm because the bundle is tracked.
-- For development cache refresh, finish active delegated tasks, use `codex plugin remove` then `codex plugin add`, and open a new Codex chat. A separate local `+codex.<timestamp>` manifest version is another cache refresh option. No personal-directory helper scripts are required; release manifests use plain semantic versions.
 
 ## Kimi Server
 
@@ -106,17 +106,17 @@ Token resolution order:
 2. `$KIMI_CODE_HOME/server.token`
 3. `~/.kimi-code/server.token`
 
-Do not commit real tokens. `.mcp.json` keeps `KIMI_SERVER_TOKEN` empty.
+Do not commit real tokens. `mcp_config.json` keeps `KIMI_SERVER_TOKEN` empty.
 
 ## Useful Kimi Delegate Tools
 
-Use these from Codex when the plugin is loaded:
+Use these from Antigravity when the plugin is loaded (core tools are `eager: true`; auxiliary tools `kimi_delegate_task`, `kimi_get_handoff`, `kimi_get_diff`, and `kimi_abort` are lazy-loaded):
 
 - `kimi_bridge_status`: live read-only diagnostics; does not auto-start, refresh token, or update cache.
 - `kimi_recent_sessions`: list recent Kimi sessions; use this first when a previous delegate was interrupted or you suspect a duplicate/running/aborted session.
 - `kimi_list_models`: list models configured in the Kimi server (id, displayName, context size, efforts, default). Use once before the first delegation in a chat so the user can pick a model; pass that `model` explicitly afterwards. Ask again only after `KIMI_RATE_LIMITED` (prompt not submitted; resubmit with `kimi_continue_task` and the new model) or `diagnostics.rateLimited: true` (turn started then hit 429; confirm it stopped, then continue the same session with the new model).
 - `kimi_find_recent_session`: find a recent Kimi session by title substring; preferred when recovering from an interruption, quota recovery, or suspected duplicate task.
-- `kimi_delegate_task`: start a Kimi task from a Codex spec/plan.
+- `kimi_delegate_task`: start a Kimi task from an Antigravity spec/plan.
 - `kimi_delegate_and_wait`: preferred one-call flow; delegates, waits, and returns `reviewPackage` when idle. Supports an optional `dedupe` object to avoid duplicate sessions.
 - `kimi_wait_until_idle`: wait for both runtime and pending prompts to settle, or report approval/question blocking; older servers fall back to runtime status.
 - `kimi_wait_for_prompt`: wait for a specific `promptId`; `settled` means it left the queue, not that the implementation succeeded. Inspect `sessionStatus` and `queueEvidence`.
@@ -149,7 +149,7 @@ Delegate and review tools return `webUrl`, which can be opened in Kimi Web to wa
 - `reviewWorkspace`: the worktree path whose `HEAD` advanced from the baseline and supplied `committedChanges`. When Kimi committed in a nested worktree, this reveals the real location of the commits.
 - Top-level `changedFiles`, `additions`, `deletions`, and `diffs` aggregate both sources for compatibility.
 
-Baselines are persisted in a Bridge-owned local store (`~/.codex-kimi-bridge/state` by default, override with `KIMI_BRIDGE_STATE_DIR`) because real Kimi servers strip arbitrary session metadata. The store contains no tokens, uses one file per session, and survives MCP/Codex restarts.
+Baselines are persisted in a Bridge-owned local store (`$PLUGIN_DATA/state` or `~/.agy-kimi-bridge/state` by default, override with `KIMI_BRIDGE_STATE_DIR`) because real Kimi servers strip arbitrary session metadata. The store contains no tokens, uses one file per session, and survives MCP/Antigravity restarts.
 
 Review rules:
 
@@ -199,21 +199,18 @@ and rejects baked-in token values or machine-specific paths.
 For plugin installation smoke checks:
 
 ```bash
-codex plugin list | rg 'kimi-delegate|codex-kimi-bridge-local'
+agy plugin validate ./plugins/kimi-delegate --strict
+agy plugin list --json
 ```
 
-Expected status:
-
-```text
-kimi-delegate@codex-kimi-bridge-local  installed, enabled  0.3.0
-```
+Expected status: `kimi-delegate` listed with `enabled: true`, `skills: ["kimi-delegate"]`, and `mcpServers: ["kimi-delegate"]`.
 
 ## Completed MVP Capabilities
 
-- Codex local plugin install works.
-- MCP tools are exposed by Codex.
+- Antigravity local plugin install and validation work (`agy plugin validate --strict`).
+- MCP tools are exposed by Antigravity (`eager: true` on core workflow tools, `timeoutSeconds: 600`).
 - Kimi server auth is handled via server token.
-- Kimi server preflight and auto-start work.
+- Kimi server preflight and auto-start work (verified on Kimi 2.6.2).
 - Successful preflight checks are short-cached by `KIMI_PREFLIGHT_CACHE_MS`.
 - `kimi_bridge_status` reports `webBaseUrl`, `canOpenWeb`, `status`, `nextActions`, and diagnostics without leaking token values, and may include safe `serverVersion`/`backend` metadata from `/api/v1/meta`.
 - `kimi_delegate_and_wait` returns an embedded `reviewPackage` on idle results.
@@ -225,7 +222,6 @@ kimi-delegate@codex-kimi-bridge-local  installed, enabled  0.3.0
 - Handoff expands untracked directories into concrete file paths when possible.
 - Bridge runtime status normalizes both legacy `status` responses and Kimi 0.27+ `busy`/`pending_interaction`/`last_turn_reason` responses.
 - `failed` is an explicit terminal status: it receives no success `reviewPackage` and is not automatically reused by dedupe.
-- End-to-end smoke test passed: Codex delegated a file creation to Kimi, read handoff/diff, reviewed the result, then delegated cleanup.
 
 ## Good Next Tasks
 
@@ -237,7 +233,7 @@ Prefer using this bridge on a real external repo/task before adding more abstrac
 ## Important Boundaries
 
 - Do not change Kimi Code server unless explicitly requested.
-- Do not change Codex plugin installation mechanics unless the task is specifically about plugin packaging.
+- Do not change Antigravity plugin installation mechanics unless the task is specifically about plugin packaging.
 - Do not use `--dangerous-bypass-auth` as a default. It is only for local smoke testing.
 - Do not leak or commit token values.
 - Do not revert user or Kimi changes unless the user explicitly asks.

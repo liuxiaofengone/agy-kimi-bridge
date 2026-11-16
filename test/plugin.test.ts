@@ -35,10 +35,14 @@ function copyPluginToTemp(): { temporaryRoot: string; copiedPluginRoot: string }
   return { temporaryRoot, copiedPluginRoot };
 }
 
-// Test-only seam for the skill-escape fixtures: the file-symlink and
-// junction operations are injectable so a test can force the EPERM boundary
-// that privilege-restricted Windows machines hit for real, while the
-// fallback link always uses the real filesystem. Production code is untouched.
+function expandPluginRoot(value: string, root: string): string {
+  if (value === '${PLUGIN_ROOT}') return root;
+  if (value.startsWith('${PLUGIN_ROOT}/') || value.startsWith('${PLUGIN_ROOT}\\')) {
+    return resolve(root, value.slice('${PLUGIN_ROOT}/'.length));
+  }
+  return resolve(root, value);
+}
+
 interface SkillEscapeOps {
   linkFile: (target: string, linkPath: string) => void;
   linkDirJunction: (target: string, linkPath: string) => void;
@@ -57,13 +61,9 @@ function createOutsideSkillEscape(
   const skillPath = join(copiedPluginRoot, 'skills', 'kimi-delegate', 'SKILL.md');
   rmSync(skillPath, { force: true });
   try {
-    // POSIX-style real file symlink (also works on privileged Windows).
     ops.linkFile(outsideSkill, skillPath);
     return { escapeLink: skillPath };
   } catch {
-    // Windows without symlink privilege (or a forced EPERM in tests): cover
-    // the same escape through a junctioned skill directory at a FRESH path,
-    // keeping the original skill directory and the outside-root target.
     const outsideDir = join(temporaryRoot, 'outside-skill-dir');
     mkdirSync(outsideDir, { recursive: true });
     writeFileSync(join(outsideDir, 'SKILL.md'), '# escaped skill content', 'utf8');
@@ -73,7 +73,7 @@ function createOutsideSkillEscape(
   }
 }
 
-describe('Codex plugin package', () => {
+describe('Antigravity plugin package', () => {
   it('passes the repository-local portable plugin validation', () => {
     expect(() => runValidator(pluginRoot)).not.toThrow();
   });
@@ -91,7 +91,7 @@ describe('Codex plugin package', () => {
   it('rejects a plugin package with a baked-in token value', () => {
     const { temporaryRoot, copiedPluginRoot } = copyPluginToTemp();
     try {
-      const mcpConfigPath = join(copiedPluginRoot, '.mcp.json');
+      const mcpConfigPath = join(copiedPluginRoot, 'mcp_config.json');
       const mcpConfig = JSON.parse(readFileSync(mcpConfigPath, 'utf8'));
       mcpConfig.mcpServers['kimi-delegate'].env.KIMI_SERVER_TOKEN = 'baked-in-secret';
       writeFileSync(mcpConfigPath, JSON.stringify(mcpConfig, null, 2));
@@ -111,46 +111,10 @@ describe('Codex plugin package', () => {
     }
   });
 
-  it('rejects absolute manifest paths even when they point inside the root', () => {
-    const { temporaryRoot, copiedPluginRoot } = copyPluginToTemp();
-    try {
-      const manifestPath = join(copiedPluginRoot, '.codex-plugin', 'plugin.json');
-      const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-      manifest.skills = join(copiedPluginRoot, 'skills');
-      writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-      expect(() => runValidator(copiedPluginRoot)).toThrow(/plugin-relative/);
-    } finally {
-      rmSync(temporaryRoot, { recursive: true, force: true });
-    }
-  });
-
-  it('rejects a skills path that escapes the plugin root through a symlink', () => {
-    const { temporaryRoot, copiedPluginRoot } = copyPluginToTemp();
-    const escapeLink = join(copiedPluginRoot, 'skills-escape');
-    try {
-      const outsideSkills = join(temporaryRoot, 'outside-skills');
-      mkdirSync(join(outsideSkills, 'kimi-delegate'), { recursive: true });
-      writeFileSync(join(outsideSkills, 'kimi-delegate', 'SKILL.md'), '# escaped skill');
-      // 'junction' also creates a real symlink on POSIX; on Windows it avoids
-      // the developer-mode/admin requirement for directory links.
-      symlinkSync(outsideSkills, escapeLink, 'junction');
-
-      const manifestPath = join(copiedPluginRoot, '.codex-plugin', 'plugin.json');
-      const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-      manifest.skills = './skills-escape';
-      writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-
-      expect(() => runValidator(copiedPluginRoot)).toThrow(/outside the plugin root/);
-    } finally {
-      rmSync(escapeLink, { force: true });
-      rmSync(temporaryRoot, { recursive: true, force: true });
-    }
-  });
-
   it('rejects a malformed semantic version', () => {
     const { temporaryRoot, copiedPluginRoot } = copyPluginToTemp();
     try {
-      const manifestPath = join(copiedPluginRoot, '.codex-plugin', 'plugin.json');
+      const manifestPath = join(copiedPluginRoot, 'plugin.json');
       const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
       manifest.version = '0.3.0garbage';
       writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
@@ -163,7 +127,7 @@ describe('Codex plugin package', () => {
   it('accepts a full semver with both prerelease and build metadata', () => {
     const { temporaryRoot, copiedPluginRoot } = copyPluginToTemp();
     try {
-      const manifestPath = join(copiedPluginRoot, '.codex-plugin', 'plugin.json');
+      const manifestPath = join(copiedPluginRoot, 'plugin.json');
       const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
       manifest.version = '1.2.3-rc.1+sha.abc';
       writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
@@ -178,7 +142,7 @@ describe('Codex plugin package', () => {
     (version) => {
       const { temporaryRoot, copiedPluginRoot } = copyPluginToTemp();
       try {
-        const manifestPath = join(copiedPluginRoot, '.codex-plugin', 'plugin.json');
+        const manifestPath = join(copiedPluginRoot, 'plugin.json');
         const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
         manifest.version = version;
         writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
@@ -195,7 +159,7 @@ describe('Codex plugin package', () => {
       const { temporaryRoot, copiedPluginRoot } = copyPluginToTemp();
       try {
         writeFileSync(
-          join(copiedPluginRoot, '.codex-plugin', 'plugin.json'),
+          join(copiedPluginRoot, 'plugin.json'),
           JSON.stringify(rootValue),
           'utf8',
         );
@@ -213,7 +177,7 @@ describe('Codex plugin package', () => {
     (envValue) => {
       const { temporaryRoot, copiedPluginRoot } = copyPluginToTemp();
       try {
-        const mcpConfigPath = join(copiedPluginRoot, '.mcp.json');
+        const mcpConfigPath = join(copiedPluginRoot, 'mcp_config.json');
         const mcpConfig = JSON.parse(readFileSync(mcpConfigPath, 'utf8'));
         mcpConfig.mcpServers['kimi-delegate'].env = envValue;
         writeFileSync(mcpConfigPath, JSON.stringify(mcpConfig, null, 2));
@@ -227,7 +191,7 @@ describe('Codex plugin package', () => {
   it('rejects non-string env values, including a non-string token, without echoing them', () => {
     const { temporaryRoot, copiedPluginRoot } = copyPluginToTemp();
     try {
-      const mcpConfigPath = join(copiedPluginRoot, '.mcp.json');
+      const mcpConfigPath = join(copiedPluginRoot, 'mcp_config.json');
       const mcpConfig = JSON.parse(readFileSync(mcpConfigPath, 'utf8'));
       mcpConfig.mcpServers['kimi-delegate'].env = {
         KIMI_SERVER_TOKEN: 12345,
@@ -251,11 +215,8 @@ describe('Codex plugin package', () => {
     const { temporaryRoot, copiedPluginRoot } = copyPluginToTemp();
     const syntheticSecret = 'SYNTH_9f8e7d6c_PLACEHOLDER';
     try {
-      // Intentionally invalid JSON whose offending token looks like a secret:
-      // Node's JSON.parse error quotes the input slice, so validators must
-      // not forward parse error messages.
       writeFileSync(
-        join(copiedPluginRoot, '.mcp.json'),
+        join(copiedPluginRoot, 'mcp_config.json'),
         `{"KIMI_SERVER_TOKEN":${syntheticSecret}}`,
         'utf8',
       );
@@ -265,25 +226,6 @@ describe('Codex plugin package', () => {
       expect(result.stdout).not.toContain(syntheticSecret);
       expect(result.stderr).not.toContain(syntheticSecret);
     } finally {
-      rmSync(temporaryRoot, { recursive: true, force: true });
-    }
-  });
-
-  it('rejects a manifest that resolves outside the plugin root', () => {
-    const { temporaryRoot, copiedPluginRoot } = copyPluginToTemp();
-    const manifestDirLink = join(copiedPluginRoot, '.codex-plugin');
-    const savedManifest = readFileSync(join(manifestDirLink, 'plugin.json'), 'utf8');
-    const outsideDir = join(temporaryRoot, 'outside-manifest');
-    try {
-      mkdirSync(outsideDir, { recursive: true });
-      writeFileSync(join(outsideDir, 'plugin.json'), savedManifest, 'utf8');
-      rmSync(manifestDirLink, { recursive: true, force: true });
-      // Junctions need no admin/developer privileges on Windows and behave as
-      // real symlinks on POSIX, keeping this fixture runnable everywhere.
-      symlinkSync(outsideDir, manifestDirLink, 'junction');
-      expect(() => runValidator(copiedPluginRoot)).toThrow(/outside the plugin root/);
-    } finally {
-      rmSync(manifestDirLink, { force: true });
       rmSync(temporaryRoot, { recursive: true, force: true });
     }
   });
@@ -301,10 +243,6 @@ describe('Codex plugin package', () => {
 
   it('falls back to a real junction and still rejects the package when the file symlink is denied with EPERM', () => {
     const { temporaryRoot, copiedPluginRoot } = copyPluginToTemp();
-    // Force the exact failure boundary privilege-restricted Windows machines
-    // hit, on every platform: the file symlink throws EPERM once, the
-    // junction fallback uses the real filesystem, and the escaped package
-    // must still be rejected. No skip, no admin/developer mode required.
     let fileLinkAttempts = 0;
     const { escapeLink } = createOutsideSkillEscape(copiedPluginRoot, temporaryRoot, {
       linkFile: () => {
@@ -328,8 +266,6 @@ describe('Codex plugin package', () => {
     const { temporaryRoot, copiedPluginRoot } = copyPluginToTemp();
     const escapeLink = join(copiedPluginRoot, 'skills', 'evil-escape');
     try {
-      // The original skills/kimi-delegate tree stays valid; the escaped link
-      // must still fail validation instead of being silently ignored.
       const outsideDir = join(temporaryRoot, 'outside-skill-tree');
       mkdirSync(join(outsideDir, 'evil'), { recursive: true });
       writeFileSync(join(outsideDir, 'evil', 'SKILL.md'), '# escaped skill', 'utf8');
@@ -345,7 +281,7 @@ describe('Codex plugin package', () => {
   it('rejects an absolute server cwd even when it points inside the plugin root', () => {
     const { temporaryRoot, copiedPluginRoot } = copyPluginToTemp();
     try {
-      const mcpConfigPath = join(copiedPluginRoot, '.mcp.json');
+      const mcpConfigPath = join(copiedPluginRoot, 'mcp_config.json');
       const mcpConfig = JSON.parse(readFileSync(mcpConfigPath, 'utf8'));
       mcpConfig.mcpServers['kimi-delegate'].cwd = copiedPluginRoot;
       writeFileSync(mcpConfigPath, JSON.stringify(mcpConfig, null, 2));
@@ -358,7 +294,7 @@ describe('Codex plugin package', () => {
   it('rejects a non-string server cwd with a controlled error', () => {
     const { temporaryRoot, copiedPluginRoot } = copyPluginToTemp();
     try {
-      const mcpConfigPath = join(copiedPluginRoot, '.mcp.json');
+      const mcpConfigPath = join(copiedPluginRoot, 'mcp_config.json');
       const mcpConfig = JSON.parse(readFileSync(mcpConfigPath, 'utf8'));
       mcpConfig.mcpServers['kimi-delegate'].cwd = 42;
       writeFileSync(mcpConfigPath, JSON.stringify(mcpConfig, null, 2));
@@ -368,12 +304,17 @@ describe('Codex plugin package', () => {
     }
   });
 
-  it('launches a tracked plugin-relative bundle', () => {
-    const config = JSON.parse(readFileSync(join(pluginRoot, '.mcp.json'), 'utf8'));
+  it('launches a portable PLUGIN_ROOT bundle with Antigravity timeout and eager tools', () => {
+    const config = JSON.parse(readFileSync(join(pluginRoot, 'mcp_config.json'), 'utf8'));
     expect(config.mcpServers['kimi-delegate']).toMatchObject({
       command: 'node',
-      args: ['./mcp/server.mjs'],
-      cwd: '.',
+      args: ['${PLUGIN_ROOT}/mcp/server.mjs'],
+      cwd: '${PLUGIN_ROOT}',
+      timeoutSeconds: 600,
+      tools: {
+        kimi_delegate_and_wait: { eager: true },
+        kimi_bridge_status: { eager: true },
+      },
     });
     expect(existsSync(bundlePath)).toBe(true);
   });
@@ -383,16 +324,19 @@ describe('Codex plugin package', () => {
     const copiedPluginRoot = join(temporaryRoot, 'kimi-delegate');
     cpSync(pluginRoot, copiedPluginRoot, { recursive: true });
 
-    const config = JSON.parse(readFileSync(join(copiedPluginRoot, '.mcp.json'), 'utf8'));
+    const config = JSON.parse(readFileSync(join(copiedPluginRoot, 'mcp_config.json'), 'utf8'));
     const serverConfig = config.mcpServers['kimi-delegate'];
-    const spawnCwd = resolve(copiedPluginRoot, serverConfig.cwd);
+    const spawnCwd = expandPluginRoot(serverConfig.cwd, copiedPluginRoot);
+    const spawnArgs = serverConfig.args.map((arg: string) => expandPluginRoot(arg, copiedPluginRoot));
 
     const transport = new StdioClientTransport({
       command: serverConfig.command,
-      args: serverConfig.args,
+      args: spawnArgs,
       cwd: spawnCwd,
       env: {
         HOME: temporaryRoot,
+        PLUGIN_ROOT: copiedPluginRoot,
+        PLUGIN_DATA: join(temporaryRoot, 'plugin-data'),
         KIMI_CODE_HOME: join(temporaryRoot, 'kimi-home'),
         KIMI_SERVER_TOKEN: '',
         KIMI_AUTO_START: 'false',
@@ -425,42 +369,27 @@ describe('Codex plugin package', () => {
   it('contains portable release metadata', () => {
     const packageJson = JSON.parse(readFileSync(resolve('package.json'), 'utf8'));
     const manifest = JSON.parse(
-      readFileSync(join(pluginRoot, '.codex-plugin/plugin.json'), 'utf8'),
+      readFileSync(join(pluginRoot, 'plugin.json'), 'utf8'),
     );
 
     expect(packageJson).toMatchObject({
+      name: 'agy-kimi-bridge',
       version: '0.3.0',
       license: 'MIT',
-      author: 'ximenchuifeng',
-      repository: {
-        type: 'git',
-        url: 'git+https://github.com/ximenchuifeng/codex-kimi-bridge.git',
-      },
-      homepage: 'https://github.com/ximenchuifeng/codex-kimi-bridge#readme',
       engines: { node: '>=20' },
     });
     expect(manifest).toMatchObject({
       name: 'kimi-delegate',
-      version: expect.stringMatching(/^0\.3\.0(?:\+codex\.\d+)?$/),
+      displayName: 'Kimi Delegate',
+      version: expect.stringMatching(/^0\.3\.0$/),
       license: 'MIT',
-      homepage: 'https://github.com/ximenchuifeng/codex-kimi-bridge#readme',
-      repository: 'https://github.com/ximenchuifeng/codex-kimi-bridge',
-      author: {
-        name: 'ximenchuifeng',
-        url: 'https://github.com/ximenchuifeng',
-      },
-      interface: { developerName: 'ximenchuifeng' },
     });
     expect(existsSync(resolve('LICENSE'))).toBe(true);
 
     const bundleText = readFileSync(bundlePath, 'utf8');
     expect(bundleText).toContain('0.3.0');
 
-    const readme = readFileSync(resolve('README.md'), 'utf8');
     const skill = readFileSync(join(pluginRoot, 'skills/kimi-delegate/SKILL.md'), 'utf8');
-    expect(readme).toContain('committedChanges');
-    expect(readme).toContain('workingTreeChanges');
-    expect(readme).toContain('initialDirtyPaths');
     expect(skill).toContain('committedChanges');
     expect(skill).toContain('workingTreeChanges');
     expect(skill).toContain('initialDirtyPaths');
@@ -468,20 +397,14 @@ describe('Codex plugin package', () => {
 
   it('uses a basename-aware guard so the bundle starts main exactly once', () => {
     const bundleText = readFileSync(bundlePath, 'utf8');
-
-    // The previous equality guard would be true when server.mjs is launched
-    // directly, causing src/index.ts and src/plugin-entry.ts to both call main().
     expect(bundleText).not.toContain('if (import.meta.url === `file://${process.argv[1]}`)');
-    // The new guard must compare the module URL with the actual argv entry path.
     expect(bundleText).toContain('isDirectExecution(import.meta.url, process.argv[1])');
   });
 
   it('does not package machine-specific paths or credential values', () => {
-    const configText = readFileSync(join(pluginRoot, '.mcp.json'), 'utf8');
+    const configText = readFileSync(join(pluginRoot, 'mcp_config.json'), 'utf8');
     const bundleText = readFileSync(bundlePath, 'utf8');
 
-    // The bundle legitimately contains a token-redaction regex literal and its
-    // replacement string. Strip those before scanning for real token-bearing URLs.
     const sanitizedBundle = bundleText
       .split('/#token=[^\\s]+/gi').join('')
       .split('#token=[redacted]').join('');

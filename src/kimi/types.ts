@@ -90,7 +90,7 @@ export interface PendingQuestion {
   [key: string]: unknown;
 }
 
-export interface CodexKimiBridgeMetadata {
+export interface AgyKimiBridgeMetadata {
   schema_version: 1;
   base_commit: string;
   base_branch?: string;

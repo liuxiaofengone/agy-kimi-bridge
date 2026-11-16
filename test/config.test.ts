@@ -24,7 +24,7 @@ describe('loadBridgeConfig', () => {
         kimiServerArgs: undefined,
         preflightCacheMs: 5000,
         kimiCodeHome: undefined,
-        stateDir: join(tmpHome, '.codex-kimi-bridge', 'state'),
+        stateDir: join(tmpHome, '.agy-kimi-bridge', 'state'),
       });
     } finally {
       vi.unstubAllEnvs();
@@ -76,13 +76,14 @@ describe('loadBridgeConfig', () => {
     },
   );
 
-  it('uses KIMI_BRIDGE_STATE_DIR or a home-based default', () => {
+  it('uses KIMI_BRIDGE_STATE_DIR, PLUGIN_DATA, or a home-based default', () => {
     const tmpHome = mkdtempSync(join(tmpdir(), 'kimi-bridge-test-'));
     vi.stubEnv('HOME', tmpHome);
     vi.stubEnv('USERPROFILE', tmpHome);
     try {
-      expect(loadBridgeConfig({}).stateDir).toBe(join(tmpHome, '.codex-kimi-bridge', 'state'));
-      expect(loadBridgeConfig({ KIMI_BRIDGE_STATE_DIR: '/custom/state' }).stateDir).toBe('/custom/state');
+      expect(loadBridgeConfig({}).stateDir).toBe(join(tmpHome, '.agy-kimi-bridge', 'state'));
+      expect(loadBridgeConfig({ PLUGIN_DATA: '/plugin/data' }).stateDir).toBe(join('/plugin/data', 'state'));
+      expect(loadBridgeConfig({ KIMI_BRIDGE_STATE_DIR: '/custom/state', PLUGIN_DATA: '/plugin/data' }).stateDir).toBe('/custom/state');
     } finally {
       vi.unstubAllEnvs();
       rmSync(tmpHome, { recursive: true, force: true });

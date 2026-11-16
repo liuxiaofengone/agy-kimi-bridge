@@ -338,7 +338,7 @@ function baselineMetadata(baseline: GitBaseline): Record<string, unknown> {
   const initialDirtyPaths = truncated
     ? baseline.initialDirtyPaths.slice(0, MAX_SESSION_DIRTY_PATHS)
     : baseline.initialDirtyPaths;
-  const codexKimiBridge: Record<string, unknown> = {
+  const agyKimiBridge: Record<string, unknown> = {
     schema_version: 1,
     base_commit: baseline.baseCommit,
     ...(baseline.baseBranch ? { base_branch: baseline.baseBranch } : {}),
@@ -346,17 +346,17 @@ function baselineMetadata(baseline: GitBaseline): Record<string, unknown> {
     ...(truncated ? { initial_dirty_paths_truncated: true } : {}),
   };
   if (baseline.worktrees && baseline.worktrees.length > 0) {
-    codexKimiBridge.worktrees = baseline.worktrees.map((wt) => ({
+    agyKimiBridge.worktrees = baseline.worktrees.map((wt) => ({
       path: wt.path,
       head_commit: wt.headCommit,
     }));
   }
-  return { codex_kimi_bridge: codexKimiBridge };
+  return { agy_kimi_bridge: agyKimiBridge };
 }
 
 function parseBaselineMetadata(metadata: Record<string, unknown> | undefined): GitBaseline | undefined {
   if (!metadata || typeof metadata !== 'object') return undefined;
-  const bridge = metadata.codex_kimi_bridge;
+  const bridge = metadata.agy_kimi_bridge ?? metadata.codex_kimi_bridge;
   if (!bridge || typeof bridge !== 'object' || (bridge as Record<string, unknown>).schema_version !== 1) {
     return undefined;
   }

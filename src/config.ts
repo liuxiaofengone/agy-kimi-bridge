@@ -111,6 +111,8 @@ export function loadBridgeConfig(env: NodeJS.ProcessEnv = process.env): BridgeCo
     kimiCodeHome,
     stateDir: env.KIMI_BRIDGE_STATE_DIR && env.KIMI_BRIDGE_STATE_DIR.trim().length > 0
       ? env.KIMI_BRIDGE_STATE_DIR.trim()
-      : join(homedir(), '.codex-kimi-bridge', 'state'),
+      : env.PLUGIN_DATA && env.PLUGIN_DATA.trim().length > 0
+        ? join(env.PLUGIN_DATA.trim(), 'state')
+        : join(homedir(), '.agy-kimi-bridge', 'state'),
   };
 }

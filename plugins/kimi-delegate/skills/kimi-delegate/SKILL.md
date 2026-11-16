@@ -1,21 +1,22 @@
 ---
 name: kimi-delegate
-description: Use when Codex should coordinate a software task but delegate implementation execution to Kimi Code.
+description: Use when Antigravity should coordinate a software task (plan, review, and verify) while delegating implementation execution to Kimi Code via the kimi-delegate MCP server.
 ---
 
 # Kimi Delegate
 
-Use this skill when the user wants Codex to act as planner, reviewer, and coordinator while Kimi Code performs implementation.
+Use this skill when the user wants Antigravity to act as planner, reviewer, and coordinator while Kimi Code performs implementation.
 
 ## Rules
 
-- Codex owns spec, plan, review, verification, and final completion decisions.
+- Antigravity owns spec, plan, review, verification, and final completion decisions.
 - Kimi owns implementation execution.
-- Do not implement code directly in Codex when the user has asked for Kimi execution.
+- Do not implement code directly in Antigravity, and do not substitute Antigravity native subagents (`invoke_subagent`) or `swarm` when the user has asked for Kimi execution.
+- Note on Antigravity MCP tool loading: core tools (`kimi_bridge_status`, `kimi_list_models`, `kimi_recent_sessions`, `kimi_find_recent_session`, `kimi_delegate_and_wait`, `kimi_wait_for_prompt`, `kimi_wait_until_idle`, `kimi_continue_task`, `kimi_review_package`, `kimi_abort_and_wait`) are eagerly registered; auxiliary tools (`kimi_delegate_task`, `kimi_get_handoff`, `kimi_get_diff`, `kimi_abort`) are lazy-loaded and invoked via `call_mcp_tool` after reading their schema.
 - Prefer `kimi_delegate_and_wait` to submit and wait for an implementation task. Keep its `sessionId` and `promptId` for follow-up observation.
-- Use `kimi_get_handoff` and `kimi_get_diff` before reviewing Kimi's work.
+- Use `kimi_get_handoff` / `kimi_review_package` and `kimi_get_diff` before reviewing Kimi's work.
 - Use `kimi_continue_task` for review feedback until acceptance criteria pass.
-- Enable swarm mode only when the task has independent work items.
+- Enable `swarmMode` only when the task has independent work items.
 - Do not auto-approve destructive commands.
 
 ## Prompt lifecycle
@@ -43,7 +44,7 @@ Every task sent to Kimi must include:
 
 - task
 - acceptance criteria
-- Codex plan
+- Antigravity plan
 - swarm split suggestion when useful
 - handoff requirements: a concrete final report plus committed and working-tree change evidence
 
@@ -52,7 +53,7 @@ Every task sent to Kimi must include:
 1. Prepare or update the spec and implementation plan.
 2. Delegate to Kimi.
 3. Wait for Kimi to finish or block.
-4. Gather handoff and diff.
+4. Gather handoff and diff (`reviewPackage` / `kimi_get_handoff` / `kimi_get_diff`).
 5. Inspect both `committedChanges` and `workingTreeChanges` in the handoff or review package.
    - A clean working tree does not prove Kimi made no changes; check `committedChanges` for commits and diffs.
    - `workingTreeChanges` may include pre-existing user work listed in `initialDirtyPaths`.

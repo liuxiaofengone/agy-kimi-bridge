@@ -1,0 +1,18 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "kimi-delegate",
+  "displayName": "Kimi Delegate",
+  "version": "0.3.0",
+  "description": "Delegate implementation tasks from Antigravity to Kimi Code through a local MCP bridge.",
+  "author": {
+    "name": "liuxiaofengone",
+    "url": "https://github.com/liuxiaofengone"
+  },
+  "repository": "https://github.com/liuxiaofengone/agy-kimi-bridge",
+  "license": "MIT",
+  "suggestedPrompts": [
+    "Check Kimi Code bridge status and available models",
+    "Delegate this implementation task to Kimi Code and review the diff",
+    "Resume or inspect my recent Kimi Code delegation sessions"
+  ]
+}
