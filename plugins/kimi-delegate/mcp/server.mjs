@@ -21960,7 +21960,7 @@ function extractMessagesFromTurns(turns) {
       }
     }
   }
-  return messages;
+  return messages.reverse();
 }
 function isMissingRouteError(error2) {
   return error2 instanceof KimiApiError && error2.httpStatus === 404 && error2.code === 404;

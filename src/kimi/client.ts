@@ -66,7 +66,7 @@ function extractMessagesFromTurns(turns: readonly WireTurn[]): Array<{ role: str
       }
     }
   }
-  return messages;
+  return messages.reverse();
 }
 
 function isMissingRouteError(error: unknown): boolean {

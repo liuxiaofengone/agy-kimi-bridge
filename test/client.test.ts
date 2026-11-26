@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { KimiApiError } from '../src/errors.js';
 import { KimiClient, type HttpPort } from '../src/kimi/client.js';
+import { selectLatestMeaningfulMessage } from '../src/messages.js';
 
 describe('KimiClient', () => {
   it('creates a session with cwd metadata', async () => {
@@ -260,10 +261,56 @@ describe('KimiClient', () => {
     const client = new KimiClient({ get, post: vi.fn() as HttpPort['post'] });
 
     await expect(client.listMessages('s1')).resolves.toEqual([
-      { role: 'user', content: 'Push code' },
       { role: 'assistant', content: 'Pushed to origin/main.' },
+      { role: 'user', content: 'Push code' },
     ]);
     expect(get).toHaveBeenCalledWith('/sessions/s1/agents/main/turns', { page_size: 200 });
+  });
+
+  it('returns newest-first messages across multiple turns with intermediate assistant messages', async () => {
+    const get = vi.fn(async (path: string) => {
+      if (path === '/sessions/s1/messages') {
+        throw new KimiApiError(404, 'HTTP error 404 Not Found', undefined, undefined, 404);
+      }
+      if (path === '/sessions/s1/agents/main/turns') {
+        return {
+          turns: [
+            {
+              items: [
+                { type: 'user_message', text: 'Fix the bug' },
+                { type: 'reasoning', text: 'thinking about the bug' },
+                { type: 'assistant_message', text: 'Let me look at the code.' },
+                { type: 'tool_call', name: 'Read' },
+                { type: 'assistant_message', text: 'First fix is in.' },
+              ],
+            },
+            {
+              items: [
+                { type: 'user_message', text: 'Now add tests' },
+                { type: 'assistant_message', text: 'Drafting tests.' },
+                { type: 'tool_call', name: 'Edit' },
+                { type: 'assistant_message', text: 'Tests added and passing.' },
+              ],
+            },
+          ],
+          has_more: false,
+        };
+      }
+      throw new Error(`Unexpected path: ${path}`);
+    }) as HttpPort['get'];
+    const client = new KimiClient({ get, post: vi.fn() as HttpPort['post'] });
+
+    const messages = await client.listMessages('s1');
+    expect(messages).toEqual([
+      { role: 'assistant', content: 'Tests added and passing.' },
+      { role: 'assistant', content: 'Drafting tests.' },
+      { role: 'user', content: 'Now add tests' },
+      { role: 'assistant', content: 'First fix is in.' },
+      { role: 'assistant', content: 'Let me look at the code.' },
+      { role: 'user', content: 'Fix the bug' },
+    ]);
+    expect(selectLatestMeaningfulMessage(messages, 'assistant')).toBe('Tests added and passing.');
+    expect(selectLatestMeaningfulMessage(messages, 'user')).toBe('Now add tests');
   });
 
   it('propagates 40401 session-not-found errors from listMessages without falling back', async () => {
