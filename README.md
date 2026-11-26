@@ -8,7 +8,7 @@ Ported from `codex-kimi-bridge` (originally forked from [ximenchuifeng/codex-kim
 
 ## Key Capabilities
 
-- **Antigravity native plugin packaging:** ships `plugins/kimi-delegate/plugin.json`, `plugins/kimi-delegate/mcp_config.json` (using `${PLUGIN_ROOT}/mcp/server.mjs`), and `plugins/kimi-delegate/skills/kimi-delegate/SKILL.md`, with core tools marked `eager: true` and `timeoutSeconds: 600`.
+- **Antigravity native plugin packaging:** ships `plugins/kimi-delegate/plugin.json`, `plugins/kimi-delegate/mcp_config.json` (using `${PLUGIN_ROOT}/mcp/server.mjs`), and `plugins/kimi-delegate/skills/kimi-delegate/SKILL.md`, with all tools lazy-loaded via `call_mcp_tool` (omitting `eager: true` so Antigravity keeps all tools enabled) and `timeoutSeconds: 600`.
 - **Model selection & rate-limit recovery:** `kimi_list_models` lists models configured on the local Kimi server (`id`, `displayName`, context size, supported efforts, default) so you can choose a model before delegating and switch models cleanly on `KIMI_RATE_LIMITED` or `diagnostics.rateLimited: true`.
 - **Safer continuation:** submitting to an existing busy session is rejected with `SESSION_BUSY` by default; `allowQueue: true` explicitly opts in to queueing.
 - **Prompt-aware completion:** `kimi_delegate_and_wait` tracks the submitted `promptId` and, when queue data is available, checks it before producing a review package instead of treating a brief idle gap as completion.

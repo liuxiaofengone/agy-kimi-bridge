@@ -17,38 +17,6 @@
         "KIMI_CODE_HOME": "",
         "KIMI_SERVER_TOKEN": "",
         "KIMI_SERVER_ARGS": "[\"web\",\"--no-open\"]"
-      },
-      "tools": {
-        "kimi_bridge_status": {
-          "eager": true
-        },
-        "kimi_list_models": {
-          "eager": true
-        },
-        "kimi_recent_sessions": {
-          "eager": true
-        },
-        "kimi_find_recent_session": {
-          "eager": true
-        },
-        "kimi_delegate_and_wait": {
-          "eager": true
-        },
-        "kimi_wait_for_prompt": {
-          "eager": true
-        },
-        "kimi_wait_until_idle": {
-          "eager": true
-        },
-        "kimi_continue_task": {
-          "eager": true
-        },
-        "kimi_review_package": {
-          "eager": true
-        },
-        "kimi_abort_and_wait": {
-          "eager": true
-        }
       }
     }
   }

@@ -304,19 +304,30 @@ describe('Antigravity plugin package', () => {
     }
   });
 
-  it('launches a portable PLUGIN_ROOT bundle with Antigravity timeout and eager tools', () => {
+  it('launches a portable PLUGIN_ROOT bundle with Antigravity timeout and lazy tools', () => {
     const config = JSON.parse(readFileSync(join(pluginRoot, 'mcp_config.json'), 'utf8'));
-    expect(config.mcpServers['kimi-delegate']).toMatchObject({
+    const serverConfig = config.mcpServers['kimi-delegate'];
+    expect(serverConfig).toMatchObject({
       command: 'node',
       args: ['${PLUGIN_ROOT}/mcp/server.mjs'],
       cwd: '${PLUGIN_ROOT}',
       timeoutSeconds: 600,
-      tools: {
-        kimi_delegate_and_wait: { eager: true },
-        kimi_bridge_status: { eager: true },
-      },
     });
+    expect(serverConfig.tools).toBeUndefined();
     expect(existsSync(bundlePath)).toBe(true);
+  });
+
+  it('rejects eager: true in mcp_config.json', () => {
+    const { temporaryRoot, copiedPluginRoot } = copyPluginToTemp();
+    try {
+      const mcpConfigPath = join(copiedPluginRoot, 'mcp_config.json');
+      const mcpConfig = JSON.parse(readFileSync(mcpConfigPath, 'utf8'));
+      mcpConfig.mcpServers['kimi-delegate'].tools = { kimi_list_models: { eager: true } };
+      writeFileSync(mcpConfigPath, JSON.stringify(mcpConfig, null, 2));
+      expect(() => runValidator(copiedPluginRoot)).toThrow(/must not set eager: true/);
+    } finally {
+      rmSync(temporaryRoot, { recursive: true, force: true });
+    }
   });
 
   it('starts after the plugin is copied away from the repository', async () => {

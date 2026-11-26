@@ -8,7 +8,7 @@
 
 ## 核心特性
 
-- **Antigravity 原生插件形态**：提供 [plugin.json](plugins/kimi-delegate/plugin.json)、[mcp_config.json](plugins/kimi-delegate/mcp_config.json)（`${PLUGIN_ROOT}/mcp/server.mjs`、`timeoutSeconds: 600`）与 [SKILL.md](plugins/kimi-delegate/skills/kimi-delegate/SKILL.md)，核心工具配置 `eager: true` 开箱可用。
+- **Antigravity 原生插件形态**：提供 [plugin.json](plugins/kimi-delegate/plugin.json)、[mcp_config.json](plugins/kimi-delegate/mcp_config.json)（`${PLUGIN_ROOT}/mcp/server.mjs`、`timeoutSeconds: 600`）与 [SKILL.md](plugins/kimi-delegate/skills/kimi-delegate/SKILL.md)，全部工具均通过 `call_mcp_tool` 懒加载调用（刻意不配置 `eager: true`，避免 Antigravity 丢弃已声明工具）。
 - **模型选择与限流恢复**：通过 `kimi_list_models` 查看本地 Kimi 服务配置的模型列表（含 `id`、`displayName`、上下文长度、思考强度与默认模型）；遇到 `KIMI_RATE_LIMITED` 或 `diagnostics.rateLimited: true` 时可清晰切换模型并在同一会话继续执行。
 - **现代 Kimi 自动启动与动态端口发现**：默认 `KIMI_SERVER_URL=auto`、`KIMI_SERVER_ARGS=["web","--no-open"]`。首次任务调用或预检触发调用会自动执行 `kimi web --no-open --port 0 --host 127.0.0.1`，由系统分配端口并鉴权，结果持久化在 `KIMI_BRIDGE_STATE_DIR` 下以便后续 MCP 进程复用（已在 Kimi 2.5.0 / 2.6.2 验证）。
 - **可诊断的启动失败与 Windows 隐藏后台启动**：持续观察子进程直到就绪，早退时返回退出码、安全错误码及 `submissionState: "not_submitted"`；Windows 下通过 `windowsHide` 隐藏控制台且不自动弹出浏览器，并使用 PowerShell 引号规则格式化诊断命令。

@@ -12,7 +12,7 @@ Use this skill when the user wants Antigravity to act as planner, reviewer, and 
 - Antigravity owns spec, plan, review, verification, and final completion decisions.
 - Kimi owns implementation execution.
 - Do not implement code directly in Antigravity, and do not substitute Antigravity native subagents (`invoke_subagent`) or `swarm` when the user has asked for Kimi execution.
-- Note on Antigravity MCP tool loading: core tools (`kimi_bridge_status`, `kimi_list_models`, `kimi_recent_sessions`, `kimi_find_recent_session`, `kimi_delegate_and_wait`, `kimi_wait_for_prompt`, `kimi_wait_until_idle`, `kimi_continue_task`, `kimi_review_package`, `kimi_abort_and_wait`) are eagerly registered; auxiliary tools (`kimi_delegate_task`, `kimi_get_handoff`, `kimi_get_diff`, `kimi_abort`) are lazy-loaded and invoked via `call_mcp_tool` after reading their schema.
+- Note on Antigravity MCP tool loading: all Kimi MCP tools (`kimi_bridge_status`, `kimi_list_models`, `kimi_recent_sessions`, `kimi_find_recent_session`, `kimi_delegate_and_wait`, `kimi_wait_for_prompt`, `kimi_wait_until_idle`, `kimi_continue_task`, `kimi_review_package`, `kimi_abort_and_wait`, `kimi_delegate_task`, `kimi_get_handoff`, `kimi_get_diff`, `kimi_abort`) are lazy-loaded and invoked via `call_mcp_tool` after reading their schema (`mcp_config.json` intentionally omits `"eager": true` so Antigravity does not drop tools from the enabled set).
 - Prefer `kimi_delegate_and_wait` to submit and wait for an implementation task. Keep its `sessionId` and `promptId` for follow-up observation.
 - Use `kimi_get_handoff` / `kimi_review_package` and `kimi_get_diff` before reviewing Kimi's work.
 - Use `kimi_continue_task` for review feedback until acceptance criteria pass.
