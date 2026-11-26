@@ -17,6 +17,16 @@ describe('normalizeRuntimeStatus', () => {
     [{ busy: false, pending_interaction: 'none', last_turn_reason: 'failed' }, 'failed'],
     [{ busy: false, pending_interaction: 'none' }, 'idle'],
     [{ status: 'running', busy: false, last_turn_reason: 'completed' }, 'running'],
+    [{ activity: 'idle', pending_interaction: 'none' }, 'idle'],
+    [{ activity: 'idle' }, 'idle'],
+    [{ activity: 'turn', pending_interaction: 'none' }, 'running'],
+    [{ activity: 'background', pending_interaction: 'none' }, 'running'],
+    [{ activity: 'turn', pending_interaction: 'approval' }, 'awaiting_approval'],
+    [{ activity: 'turn', pending_interaction: 'question' }, 'awaiting_question'],
+    [{ activity: 'idle', pending_interaction: 'approval' }, 'awaiting_approval'],
+    [{ activity: 'idle', pending_interaction: 'none', last_turn_outcome: 'completed' }, 'idle'],
+    [{ activity: 'idle', pending_interaction: 'none', last_turn_outcome: 'interrupted' }, 'aborted'],
+    [{ activity: 'idle', pending_interaction: 'none', last_turn_outcome: 'failed' }, 'failed'],
   ] as const)('normalizes %o to %s', (input, expected) => {
     expect(normalizeRuntimeStatus(input)).toBe(expected);
   });
@@ -27,6 +37,9 @@ describe('normalizeRuntimeStatus', () => {
     { busy: 'yes' },
     { busy: false, pending_interaction: 'confirm' },
     { busy: false, pending_interaction: 'none', last_turn_reason: 'unknown' },
+    { activity: 'paused' },
+    { activity: 'idle', pending_interaction: 'confirm' },
+    { activity: 'idle', pending_interaction: 'none', last_turn_outcome: 'unknown' },
   ])('rejects an unrecognized state shape: %o', (input) => {
     expect(() => normalizeRuntimeStatus(input)).toThrow(/Kimi session state|fields/);
   });

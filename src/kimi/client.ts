@@ -1,3 +1,4 @@
+import { KimiApiError } from '../errors.js';
 import type { KimiHttpClient } from './http.js';
 import { normalizeRuntimeStatus, type BridgeRuntimeStatus } from './runtime-status.js';
 import type { KimiServerConfig, KimiServerMeta, ListSessionsInput, ListSessionsResult, PendingApproval, PendingQuestion, PermissionMode, PromptQueueSnapshot, PromptSubmitResult, RuntimeSession, SessionStatus, WireSession } from './types.js';
@@ -34,16 +35,77 @@ export interface GitStatusResult {
   deletions: number;
 }
 
+export interface WireTurnItem {
+  type: string;
+  text?: string;
+}
+
+export interface WireTurn {
+  items?: WireTurnItem[];
+}
+
+export interface WireInteraction {
+  interaction_id: string;
+  kind: 'approval' | 'question' | string;
+  request?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
 function messageText(message: WireMessage): string {
   return message.content.map((part) => part.text ?? '').join('');
 }
 
+function extractMessagesFromTurns(turns: readonly WireTurn[]): Array<{ role: string; content: string }> {
+  const messages: Array<{ role: string; content: string }> = [];
+  for (const turn of turns) {
+    for (const item of turn.items ?? []) {
+      if (item.type === 'user_message') {
+        messages.push({ role: 'user', content: item.text ?? '' });
+      } else if (item.type === 'assistant_message') {
+        messages.push({ role: 'assistant', content: item.text ?? '' });
+      }
+    }
+  }
+  return messages;
+}
+
+function isMissingRouteError(error: unknown): boolean {
+  return error instanceof KimiApiError && error.httpStatus === 404 && error.code === 404;
+}
+
+function isUnsupportedAbortActionError(error: unknown): boolean {
+  return (
+    isMissingRouteError(error) ||
+    (error instanceof KimiApiError && error.code === 40001 && /unsupported action/i.test(error.message))
+  );
+}
+
 const MAX_SESSION_LIST_PAGE_SIZE = 100;
+const DEFAULT_TURNS_PAGE_SIZE = 200;
+
+function resolveSessionCwd(session: WireSession): string {
+  const candidates = [
+    session.metadata?.cwd,
+    session.environment_cwd,
+    session.cwd,
+    session.workspace_root,
+  ];
+  for (const value of candidates) {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value;
+    }
+  }
+  return '';
+}
 
 function normalizeSession(session: WireSession): RuntimeSession {
-  const { status: _wireStatus, ...rest } = session;
+  const { status: _wireStatus, metadata, ...rest } = session;
   return {
     ...rest,
+    metadata: {
+      ...(metadata ?? {}),
+      cwd: resolveSessionCwd(session),
+    },
     status: normalizeRuntimeStatus(session),
   };
 }
@@ -91,8 +153,17 @@ export class KimiClient {
   }
 
   async listMessages(sessionId: string): Promise<Array<{ role: string; content: string }>> {
-    const page = await this.http.get<{ items: WireMessage[] }>(`/sessions/${encodeURIComponent(sessionId)}/messages`);
-    return page.items.map((message) => ({ role: message.role, content: messageText(message) }));
+    try {
+      const page = await this.http.get<{ items: WireMessage[] }>(`/sessions/${encodeURIComponent(sessionId)}/messages`);
+      return page.items.map((message) => ({ role: message.role, content: messageText(message) }));
+    } catch (error) {
+      if (!isMissingRouteError(error)) throw error;
+      const page = await this.http.get<{ turns: WireTurn[] }>(
+        `/sessions/${encodeURIComponent(sessionId)}/agents/main/turns`,
+        { page_size: DEFAULT_TURNS_PAGE_SIZE },
+      );
+      return extractMessagesFromTurns(page.turns ?? []);
+    }
   }
 
   getGitStatus(sessionId: string): Promise<GitStatusResult> {
@@ -103,8 +174,17 @@ export class KimiClient {
     return this.http.post(`/sessions/${encodeURIComponent(sessionId)}/fs:diff`, { path });
   }
 
-  abortSession(sessionId: string): Promise<{ aborted: boolean }> {
-    return this.http.post(`/sessions/${encodeURIComponent(sessionId)}:abort`);
+  async abortSession(sessionId: string): Promise<{ aborted: boolean }> {
+    try {
+      return await this.http.post<{ aborted: boolean }>(`/sessions/${encodeURIComponent(sessionId)}:abort`);
+    } catch (error) {
+      if (!isUnsupportedAbortActionError(error)) throw error;
+      const result = await this.http.post<{ cancelled?: boolean; aborted?: boolean }>(
+        `/sessions/${encodeURIComponent(sessionId)}:cancel`,
+        {},
+      );
+      return { aborted: Boolean(result.cancelled ?? result.aborted) };
+    }
   }
 
   listPrompts(sessionId: string): Promise<PromptQueueSnapshot> {
@@ -128,19 +208,47 @@ export class KimiClient {
   }
 
   async listPendingApprovals(sessionId: string): Promise<PendingApproval[]> {
-    const page = await this.http.get<{ items: PendingApproval[] }>(
-      `/sessions/${encodeURIComponent(sessionId)}/approvals`,
-      { status: 'pending' },
-    );
-    return page.items;
+    try {
+      const page = await this.http.get<{ items: PendingApproval[] }>(
+        `/sessions/${encodeURIComponent(sessionId)}/approvals`,
+        { status: 'pending' },
+      );
+      return page.items;
+    } catch (error) {
+      if (!isMissingRouteError(error)) throw error;
+      const page = await this.http.get<{ items: WireInteraction[] }>(
+        `/sessions/${encodeURIComponent(sessionId)}/interactions`,
+      );
+      return (page.items ?? [])
+        .filter((item) => item.kind === 'approval')
+        .map((item) => ({
+          ...item,
+          ...(item.request ?? {}),
+          approval_id: item.interaction_id,
+        }));
+    }
   }
 
   async listPendingQuestions(sessionId: string): Promise<PendingQuestion[]> {
-    const page = await this.http.get<{ items: PendingQuestion[] }>(
-      `/sessions/${encodeURIComponent(sessionId)}/questions`,
-      { status: 'pending' },
-    );
-    return page.items;
+    try {
+      const page = await this.http.get<{ items: PendingQuestion[] }>(
+        `/sessions/${encodeURIComponent(sessionId)}/questions`,
+        { status: 'pending' },
+      );
+      return page.items;
+    } catch (error) {
+      if (!isMissingRouteError(error)) throw error;
+      const page = await this.http.get<{ items: WireInteraction[] }>(
+        `/sessions/${encodeURIComponent(sessionId)}/interactions`,
+      );
+      return (page.items ?? [])
+        .filter((item) => item.kind === 'question')
+        .map((item) => ({
+          ...item,
+          ...(item.request ?? {}),
+          question_id: item.interaction_id,
+        }));
+    }
   }
 
   async listSessions(input: ListSessionsInput): Promise<ListSessionsResult> {

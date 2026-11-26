@@ -16,15 +16,21 @@ export interface WireSession {
   title: string;
   status?: unknown;
   busy?: unknown;
+  activity?: unknown;
   pending_interaction?: unknown;
   last_turn_reason?: unknown;
-  metadata: { cwd: string; [key: string]: unknown };
-  agent_config: Record<string, unknown>;
-  last_seq: number;
+  last_turn_outcome?: unknown;
+  cwd?: string;
+  workspace_root?: string;
+  environment_cwd?: string;
+  metadata?: { cwd?: string; [key: string]: unknown };
+  agent_config?: Record<string, unknown>;
+  last_seq?: number;
 }
 
-export type RuntimeSession = Omit<WireSession, 'status'> & {
+export type RuntimeSession = Omit<WireSession, 'status' | 'metadata'> & {
   status: BridgeRuntimeStatus;
+  metadata: { cwd: string; [key: string]: unknown };
 };
 
 export interface PromptSubmitResult {
@@ -36,7 +42,7 @@ export interface PromptSubmitResult {
 export interface PromptQueueItem {
   prompt_id: string;
   user_message_id: string;
-  status: 'running' | 'queued' | 'blocked';
+  status: 'running' | 'queued' | 'blocked' | 'failed';
   content: Array<{ type: string; [key: string]: unknown }>;
   created_at: string;
 }

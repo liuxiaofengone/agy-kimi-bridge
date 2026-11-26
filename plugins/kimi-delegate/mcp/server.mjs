@@ -21920,6 +21920,12 @@ function unsupported(facts) {
   const fields = Object.keys(facts).sort().join(", ") || "(none)";
   return new Error(`Unsupported Kimi session state fields: ${fields}`);
 }
+function normalizeIdleOutcome(facts, outcome) {
+  if (outcome === void 0 || outcome === "completed") return "idle";
+  if (outcome === "cancelled" || outcome === "interrupted") return "aborted";
+  if (outcome === "failed") return "failed";
+  throw unsupported(facts);
+}
 function normalizeRuntimeStatus(facts) {
   if (typeof facts.status === "string" && LEGACY_STATUSES.has(facts.status)) {
     return facts.status;
@@ -21929,23 +21935,63 @@ function normalizeRuntimeStatus(facts) {
   if (facts.pending_interaction !== void 0 && facts.pending_interaction !== "none") {
     throw unsupported(facts);
   }
+  if (facts.activity !== void 0) {
+    if (facts.activity === "turn" || facts.activity === "background") return "running";
+    if (facts.activity !== "idle") throw unsupported(facts);
+    return normalizeIdleOutcome(facts, facts.last_turn_outcome ?? facts.last_turn_reason);
+  }
   if (facts.busy === true) return "running";
   if (facts.busy !== false) throw unsupported(facts);
-  if (facts.last_turn_reason === void 0 || facts.last_turn_reason === "completed") return "idle";
-  if (facts.last_turn_reason === "cancelled") return "aborted";
-  if (facts.last_turn_reason === "failed") return "failed";
-  throw unsupported(facts);
+  return normalizeIdleOutcome(facts, facts.last_turn_reason ?? facts.last_turn_outcome);
 }
 
 // src/kimi/client.ts
 function messageText(message) {
   return message.content.map((part) => part.text ?? "").join("");
 }
+function extractMessagesFromTurns(turns) {
+  const messages = [];
+  for (const turn of turns) {
+    for (const item of turn.items ?? []) {
+      if (item.type === "user_message") {
+        messages.push({ role: "user", content: item.text ?? "" });
+      } else if (item.type === "assistant_message") {
+        messages.push({ role: "assistant", content: item.text ?? "" });
+      }
+    }
+  }
+  return messages;
+}
+function isMissingRouteError(error2) {
+  return error2 instanceof KimiApiError && error2.httpStatus === 404 && error2.code === 404;
+}
+function isUnsupportedAbortActionError(error2) {
+  return isMissingRouteError(error2) || error2 instanceof KimiApiError && error2.code === 40001 && /unsupported action/i.test(error2.message);
+}
 var MAX_SESSION_LIST_PAGE_SIZE = 100;
+var DEFAULT_TURNS_PAGE_SIZE = 200;
+function resolveSessionCwd(session) {
+  const candidates = [
+    session.metadata?.cwd,
+    session.environment_cwd,
+    session.cwd,
+    session.workspace_root
+  ];
+  for (const value of candidates) {
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value;
+    }
+  }
+  return "";
+}
 function normalizeSession(session) {
-  const { status: _wireStatus, ...rest } = session;
+  const { status: _wireStatus, metadata, ...rest } = session;
   return {
     ...rest,
+    metadata: {
+      ...metadata ?? {},
+      cwd: resolveSessionCwd(session)
+    },
     status: normalizeRuntimeStatus(session)
   };
 }
@@ -21988,8 +22034,17 @@ var KimiClient = class {
     });
   }
   async listMessages(sessionId) {
-    const page = await this.http.get(`/sessions/${encodeURIComponent(sessionId)}/messages`);
-    return page.items.map((message) => ({ role: message.role, content: messageText(message) }));
+    try {
+      const page = await this.http.get(`/sessions/${encodeURIComponent(sessionId)}/messages`);
+      return page.items.map((message) => ({ role: message.role, content: messageText(message) }));
+    } catch (error2) {
+      if (!isMissingRouteError(error2)) throw error2;
+      const page = await this.http.get(
+        `/sessions/${encodeURIComponent(sessionId)}/agents/main/turns`,
+        { page_size: DEFAULT_TURNS_PAGE_SIZE }
+      );
+      return extractMessagesFromTurns(page.turns ?? []);
+    }
   }
   getGitStatus(sessionId) {
     return this.http.post(`/sessions/${encodeURIComponent(sessionId)}/fs:git_status`, {});
@@ -21997,8 +22052,17 @@ var KimiClient = class {
   getFileDiff(sessionId, path3) {
     return this.http.post(`/sessions/${encodeURIComponent(sessionId)}/fs:diff`, { path: path3 });
   }
-  abortSession(sessionId) {
-    return this.http.post(`/sessions/${encodeURIComponent(sessionId)}:abort`);
+  async abortSession(sessionId) {
+    try {
+      return await this.http.post(`/sessions/${encodeURIComponent(sessionId)}:abort`);
+    } catch (error2) {
+      if (!isUnsupportedAbortActionError(error2)) throw error2;
+      const result = await this.http.post(
+        `/sessions/${encodeURIComponent(sessionId)}:cancel`,
+        {}
+      );
+      return { aborted: Boolean(result.cancelled ?? result.aborted) };
+    }
   }
   listPrompts(sessionId) {
     return this.http.get(`/sessions/${encodeURIComponent(sessionId)}/prompts`);
@@ -22017,18 +22081,42 @@ var KimiClient = class {
     return model && model.trim().length > 0 ? model : void 0;
   }
   async listPendingApprovals(sessionId) {
-    const page = await this.http.get(
-      `/sessions/${encodeURIComponent(sessionId)}/approvals`,
-      { status: "pending" }
-    );
-    return page.items;
+    try {
+      const page = await this.http.get(
+        `/sessions/${encodeURIComponent(sessionId)}/approvals`,
+        { status: "pending" }
+      );
+      return page.items;
+    } catch (error2) {
+      if (!isMissingRouteError(error2)) throw error2;
+      const page = await this.http.get(
+        `/sessions/${encodeURIComponent(sessionId)}/interactions`
+      );
+      return (page.items ?? []).filter((item) => item.kind === "approval").map((item) => ({
+        ...item,
+        ...item.request ?? {},
+        approval_id: item.interaction_id
+      }));
+    }
   }
   async listPendingQuestions(sessionId) {
-    const page = await this.http.get(
-      `/sessions/${encodeURIComponent(sessionId)}/questions`,
-      { status: "pending" }
-    );
-    return page.items;
+    try {
+      const page = await this.http.get(
+        `/sessions/${encodeURIComponent(sessionId)}/questions`,
+        { status: "pending" }
+      );
+      return page.items;
+    } catch (error2) {
+      if (!isMissingRouteError(error2)) throw error2;
+      const page = await this.http.get(
+        `/sessions/${encodeURIComponent(sessionId)}/interactions`
+      );
+      return (page.items ?? []).filter((item) => item.kind === "question").map((item) => ({
+        ...item,
+        ...item.request ?? {},
+        question_id: item.interaction_id
+      }));
+    }
   }
   async listSessions(input) {
     const requestedPageSize = input.pageSize ?? 20;

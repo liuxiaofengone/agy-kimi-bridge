@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { KimiApiError } from '../src/errors.js';
 import { KimiClient, type HttpPort } from '../src/kimi/client.js';
 
 describe('KimiClient', () => {
@@ -194,5 +195,125 @@ describe('KimiClient', () => {
 
     await expect(client.getMeta()).resolves.toEqual({ server_version: '0.27.0', backend: 'v2' });
     expect(get).toHaveBeenCalledWith('/meta');
+  });
+
+  it('normalizes Kimi 2.8.0 activity sessions and populates metadata.cwd from top-level fields', async () => {
+    const get = vi.fn(async (path: string) => {
+      if (path === '/sessions/s-idle') {
+        return {
+          id: 's-idle',
+          title: 'Kimi 2.8 session',
+          activity: 'idle',
+          pending_interaction: 'none',
+          last_turn_outcome: 'interrupted',
+          cwd: '/repo/from-cwd',
+          workspace_root: '/repo/root',
+          metadata: {},
+        };
+      }
+      return {
+        id: 's-env',
+        title: 'Kimi 2.8 env session',
+        activity: 'turn',
+        pending_interaction: 'none',
+        cwd: '/repo/from-cwd',
+        environment_cwd: '/repo/packages/app',
+        workspace_root: '/repo',
+      };
+    }) as HttpPort['get'];
+    const client = new KimiClient({ get, post: vi.fn() as HttpPort['post'] });
+
+    await expect(client.getSession('s-idle')).resolves.toMatchObject({
+      id: 's-idle',
+      status: 'aborted',
+      metadata: { cwd: '/repo/from-cwd' },
+    });
+    await expect(client.getSession('s-env')).resolves.toMatchObject({
+      id: 's-env',
+      status: 'running',
+      metadata: { cwd: '/repo/packages/app' },
+    });
+  });
+
+  it('falls back to /agents/main/turns when /messages returns HTTP 404', async () => {
+    const get = vi.fn(async (path: string) => {
+      if (path === '/sessions/s1/messages') {
+        throw new KimiApiError(404, 'HTTP error 404 Not Found', undefined, undefined, 404);
+      }
+      if (path === '/sessions/s1/agents/main/turns') {
+        return {
+          turns: [
+            {
+              items: [
+                { type: 'user_message', text: 'Push code' },
+                { type: 'reasoning', text: 'internal thought' },
+                { type: 'tool_call', name: 'Bash' },
+                { type: 'assistant_message', text: 'Pushed to origin/main.' },
+              ],
+            },
+          ],
+          has_more: false,
+        };
+      }
+      throw new Error(`Unexpected path: ${path}`);
+    }) as HttpPort['get'];
+    const client = new KimiClient({ get, post: vi.fn() as HttpPort['post'] });
+
+    await expect(client.listMessages('s1')).resolves.toEqual([
+      { role: 'user', content: 'Push code' },
+      { role: 'assistant', content: 'Pushed to origin/main.' },
+    ]);
+    expect(get).toHaveBeenCalledWith('/sessions/s1/agents/main/turns', { page_size: 200 });
+  });
+
+  it('propagates 40401 session-not-found errors from listMessages without falling back', async () => {
+    const get = vi.fn(async () => {
+      throw new KimiApiError(40401, 'session not found', 'req-1', undefined, 404);
+    }) as HttpPort['get'];
+    const client = new KimiClient({ get, post: vi.fn() as HttpPort['post'] });
+
+    await expect(client.listMessages('missing')).rejects.toMatchObject({ code: 40401 });
+    expect(get).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to :cancel when :abort returns unsupported action on Kimi 2.8.0', async () => {
+    const post = vi.fn(async (path: string) => {
+      if (path === '/sessions/s1:abort') {
+        throw new KimiApiError(40001, 'session_id: unsupported action: s1:abort', 'req-1', undefined, 200);
+      }
+      if (path === '/sessions/s1:cancel') {
+        return { cancelled: true };
+      }
+      throw new Error(`Unexpected path: ${path}`);
+    }) as HttpPort['post'];
+    const client = new KimiClient({ get: vi.fn() as HttpPort['get'], post });
+
+    await expect(client.abortSession('s1')).resolves.toEqual({ aborted: true });
+    expect(post).toHaveBeenCalledWith('/sessions/s1:cancel', {});
+  });
+
+  it('falls back to /interactions when /approvals or /questions returns HTTP 404', async () => {
+    const get = vi.fn(async (path: string) => {
+      if (path === '/sessions/s1/approvals' || path === '/sessions/s1/questions') {
+        throw new KimiApiError(404, 'HTTP error 404 Not Found', undefined, undefined, 404);
+      }
+      if (path === '/sessions/s1/interactions') {
+        return {
+          items: [
+            { interaction_id: 'int-a1', kind: 'approval', request: { tool_name: 'Bash', action: 'git push' } },
+            { interaction_id: 'int-q1', kind: 'question', request: { questions: [{ id: 'q_0', question: 'Which branch?' }] } },
+          ],
+        };
+      }
+      throw new Error(`Unexpected path: ${path}`);
+    }) as HttpPort['get'];
+    const client = new KimiClient({ get, post: vi.fn() as HttpPort['post'] });
+
+    await expect(client.listPendingApprovals('s1')).resolves.toEqual([
+      expect.objectContaining({ approval_id: 'int-a1', interaction_id: 'int-a1', tool_name: 'Bash', action: 'git push' }),
+    ]);
+    await expect(client.listPendingQuestions('s1')).resolves.toEqual([
+      expect.objectContaining({ question_id: 'int-q1', interaction_id: 'int-q1', questions: [{ id: 'q_0', question: 'Which branch?' }] }),
+    ]);
   });
 });
